@@ -28,6 +28,7 @@ class TodoApiRoutesTest {
     static void startServer() {
         port(TEST_PORT);
         new TodoApiRoutes(new TodoRepository()).register();
+        Filters.register();
         ExceptionHandlers.register();
         awaitInitialization();
     }
@@ -44,6 +45,7 @@ class TodoApiRoutesTest {
                 {"title": "buy milk", "description": "2%"}""");
 
         assertThat(response.statusCode()).isEqualTo(201);
+        assertThat(response.headers().firstValue("Content-Type").orElseThrow()).contains("application/json");
         Todo created = Json.GSON.fromJson(response.body(), Todo.class);
         assertThat(created.getTitle()).isEqualTo("buy milk");
         assertThat(created.getDescription()).isEqualTo("2%");
@@ -154,6 +156,24 @@ class TodoApiRoutesTest {
 
         assertThat(activeTodos).extracting(Todo::getId).contains(active.getId()).doesNotContain(completed.getId());
         assertThat(completedTodos).extracting(Todo::getId).contains(completed.getId()).doesNotContain(active.getId());
+    }
+
+    @Test
+    void unknownApiPath_returnsJsonNotFound() throws Exception {
+        HttpResponse<String> response = get("http://localhost:" + TEST_PORT + "/api/no-such-path");
+
+        assertThat(response.statusCode()).isEqualTo(404);
+        assertThat(response.headers().firstValue("Content-Type").orElseThrow()).contains("application/json");
+        ErrorResponse error = Json.GSON.fromJson(response.body(), ErrorResponse.class);
+        assertThat(error.message()).isEqualTo("not found");
+    }
+
+    @Test
+    void listTodos_returnsJsonContentType() throws Exception {
+        HttpResponse<String> response = get(BASE_URL);
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.headers().firstValue("Content-Type").orElseThrow()).contains("application/json");
     }
 
     @Test

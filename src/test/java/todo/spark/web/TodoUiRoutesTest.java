@@ -36,6 +36,7 @@ class TodoUiRoutesTest {
         staticFileLocation("/public");
         repository = new TodoRepository();
         new TodoUiRoutes(repository).register();
+        Filters.register();
         ExceptionHandlers.register();
         awaitInitialization();
     }
@@ -58,6 +59,15 @@ class TodoUiRoutesTest {
     }
 
     @Test
+    void unknownPage_returnsHtmlNotFoundPage() throws Exception {
+        HttpResponse<String> response = get("/no-such-page");
+
+        assertThat(response.statusCode()).isEqualTo(404);
+        assertThat(response.headers().firstValue("Content-Type").orElseThrow()).contains("text/html");
+        assertThat(response.body()).contains("<h1>404</h1>");
+    }
+
+    @Test
     void createTodo_withTitle_redirectsAndAppearsInList() throws Exception {
         HttpResponse<String> createResponse = postForm("/todos", Map.of(
                 "title", "a unique creatable title",
@@ -65,7 +75,7 @@ class TodoUiRoutesTest {
                 "dueDate", "2026-12-25"));
 
         assertThat(createResponse.statusCode()).isEqualTo(302);
-        assertThat(createResponse.headers().firstValue("Location")).contains("/");
+        assertThat(createResponse.headers().firstValue("Location").orElseThrow()).isEqualTo("/");
 
         HttpResponse<String> list = get("/");
         assertThat(list.body())
@@ -99,7 +109,7 @@ class TodoUiRoutesTest {
         HttpResponse<String> response = get("/todos/999999/edit");
 
         assertThat(response.statusCode()).isEqualTo(302);
-        assertThat(response.headers().firstValue("Location")).contains("/");
+        assertThat(response.headers().firstValue("Location").orElseThrow()).isEqualTo("/");
     }
 
     @Test
