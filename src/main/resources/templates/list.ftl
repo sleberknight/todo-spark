@@ -23,15 +23,15 @@
 
 <ul class="todos">
     <#list todos as todo>
-    <li<#if todo.completed> class="completed"</#if>>
-        <form action="/todos/${todo.id}/toggle" method="post" class="inline">
-            <button type="submit" class="toggle" title="toggle complete">${todo.completed?then("&#10003;", "&#9675;")}</button>
+    <li<#if todo.completed()> class="completed"</#if>>
+        <form action="/todos/${todo.id()}/toggle" method="post" class="inline">
+            <button type="submit" class="toggle" title="toggle complete">${todo.completed()?then("&#10003;", "&#9675;")}</button>
         </form>
-        <span class="title">${todo.title}</span>
-        <#if todo.description??><span class="description">${todo.description}</span></#if>
-        <#if todo.dueDate??><span class="due-date">due ${todo.formattedDueDate}</span></#if>
-        <a href="/todos/${todo.id}/edit">edit</a>
-        <form action="/todos/${todo.id}/delete" method="post" class="inline">
+        <span class="title">${todo.title()}</span>
+        <#if todo.description()??><span class="description">${todo.description()}</span></#if>
+        <#if todo.dueDate()??><span class="due-date">due ${todo.formattedDueDate}</span></#if>
+        <a href="/todos/${todo.id()}/edit">edit</a>
+        <form action="/todos/${todo.id()}/delete" method="post" class="inline">
             <button type="submit" class="delete">delete</button>
         </form>
     </li>

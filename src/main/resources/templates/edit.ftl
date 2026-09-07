@@ -8,12 +8,12 @@
 <body>
 <h1>Edit todo</h1>
 
-<form action="/todos/${todo.id}" method="post" class="edit-todo">
+<form action="/todos/${todo.id()}" method="post" class="edit-todo">
     <label>Title
-        <input type="text" name="title" value="${todo.title}" required>
+        <input type="text" name="title" value="${todo.title()}" required>
     </label>
     <label>Description
-        <input type="text" name="description" value="${(todo.description)!""}">
+        <input type="text" name="description" value="${(todo.description())!""}">
     </label>
     <label>Due date
         <input type="date" name="dueDate" value="${todo.formattedDueDate}">

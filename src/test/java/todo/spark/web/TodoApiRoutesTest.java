@@ -47,9 +47,9 @@ class TodoApiRoutesTest {
         assertThat(response.statusCode()).isEqualTo(201);
         assertThat(response.headers().firstValue("Content-Type").orElseThrow()).contains("application/json");
         Todo created = Json.GSON.fromJson(response.body(), Todo.class);
-        assertThat(created.getTitle()).isEqualTo("buy milk");
-        assertThat(created.getDescription()).isEqualTo("2%");
-        assertThat(created.isCompleted()).isFalse();
+        assertThat(created.title()).isEqualTo("buy milk");
+        assertThat(created.description()).isEqualTo("2%");
+        assertThat(created.completed()).isFalse();
     }
 
     @Test
@@ -66,12 +66,12 @@ class TodoApiRoutesTest {
     void getTodo_whenExists_returnsIt() throws Exception {
         Todo created = createViaApi("get me");
 
-        HttpResponse<String> response = get(BASE_URL + "/" + created.getId());
+        HttpResponse<String> response = get(BASE_URL + "/" + created.id());
 
         assertThat(response.statusCode()).isEqualTo(200);
         Todo fetched = Json.GSON.fromJson(response.body(), Todo.class);
-        assertThat(fetched.getId()).isEqualTo(created.getId());
-        assertThat(fetched.getTitle()).isEqualTo("get me");
+        assertThat(fetched.id()).isEqualTo(created.id());
+        assertThat(fetched.title()).isEqualTo("get me");
     }
 
     @Test
@@ -94,13 +94,13 @@ class TodoApiRoutesTest {
     void updateTodo_whenExists_updatesFields() throws Exception {
         Todo created = createViaApi("original title");
 
-        HttpResponse<String> response = put(BASE_URL + "/" + created.getId(), """
+        HttpResponse<String> response = put(BASE_URL + "/" + created.id(), """
                 {"title": "updated title", "description": "updated description"}""");
 
         assertThat(response.statusCode()).isEqualTo(200);
         Todo updated = Json.GSON.fromJson(response.body(), Todo.class);
-        assertThat(updated.getTitle()).isEqualTo("updated title");
-        assertThat(updated.getDescription()).isEqualTo("updated description");
+        assertThat(updated.title()).isEqualTo("updated title");
+        assertThat(updated.description()).isEqualTo("updated description");
     }
 
     @Test
@@ -115,23 +115,23 @@ class TodoApiRoutesTest {
     void toggleTodo_flipsCompletionEachCall() throws Exception {
         Todo created = createViaApi("toggle me");
 
-        HttpResponse<String> firstToggle = patch(BASE_URL + "/" + created.getId() + "/toggle");
+        HttpResponse<String> firstToggle = patch(BASE_URL + "/" + created.id() + "/toggle");
         assertThat(firstToggle.statusCode()).isEqualTo(200);
-        assertThat(Json.GSON.fromJson(firstToggle.body(), Todo.class).isCompleted()).isTrue();
+        assertThat(Json.GSON.fromJson(firstToggle.body(), Todo.class).completed()).isTrue();
 
-        HttpResponse<String> secondToggle = patch(BASE_URL + "/" + created.getId() + "/toggle");
+        HttpResponse<String> secondToggle = patch(BASE_URL + "/" + created.id() + "/toggle");
         assertThat(secondToggle.statusCode()).isEqualTo(200);
-        assertThat(Json.GSON.fromJson(secondToggle.body(), Todo.class).isCompleted()).isFalse();
+        assertThat(Json.GSON.fromJson(secondToggle.body(), Todo.class).completed()).isFalse();
     }
 
     @Test
     void deleteTodo_whenExists_returns204AndRemovesIt() throws Exception {
         Todo created = createViaApi("delete me");
 
-        HttpResponse<String> deleteResponse = delete(BASE_URL + "/" + created.getId());
+        HttpResponse<String> deleteResponse = delete(BASE_URL + "/" + created.id());
         assertThat(deleteResponse.statusCode()).isEqualTo(204);
 
-        HttpResponse<String> getResponse = get(BASE_URL + "/" + created.getId());
+        HttpResponse<String> getResponse = get(BASE_URL + "/" + created.id());
         assertThat(getResponse.statusCode()).isEqualTo(404);
     }
 
@@ -146,7 +146,7 @@ class TodoApiRoutesTest {
     void listTodos_filtersByStatus() throws Exception {
         Todo active = createViaApi("active status filter test");
         Todo completed = createViaApi("completed status filter test");
-        patch(BASE_URL + "/" + completed.getId() + "/toggle");
+        patch(BASE_URL + "/" + completed.id() + "/toggle");
 
         HttpResponse<String> activeResponse = get(BASE_URL + "?status=active");
         HttpResponse<String> completedResponse = get(BASE_URL + "?status=completed");
@@ -154,8 +154,8 @@ class TodoApiRoutesTest {
         Todo[] activeTodos = Json.GSON.fromJson(activeResponse.body(), Todo[].class);
         Todo[] completedTodos = Json.GSON.fromJson(completedResponse.body(), Todo[].class);
 
-        assertThat(activeTodos).extracting(Todo::getId).contains(active.getId()).doesNotContain(completed.getId());
-        assertThat(completedTodos).extracting(Todo::getId).contains(completed.getId()).doesNotContain(active.getId());
+        assertThat(activeTodos).extracting(Todo::id).contains(active.id()).doesNotContain(completed.id());
+        assertThat(completedTodos).extracting(Todo::id).contains(completed.id()).doesNotContain(active.id());
     }
 
     @Test
@@ -180,13 +180,13 @@ class TodoApiRoutesTest {
     void deleteCompleted_removesOnlyCompletedTodos() throws Exception {
         Todo active = createViaApi("stays active");
         Todo completed = createViaApi("gets bulk-deleted");
-        patch(BASE_URL + "/" + completed.getId() + "/toggle");
+        patch(BASE_URL + "/" + completed.id() + "/toggle");
 
         HttpResponse<String> response = delete(BASE_URL + "/completed");
         assertThat(response.statusCode()).isEqualTo(200);
 
-        assertThat(get(BASE_URL + "/" + active.getId()).statusCode()).isEqualTo(200);
-        assertThat(get(BASE_URL + "/" + completed.getId()).statusCode()).isEqualTo(404);
+        assertThat(get(BASE_URL + "/" + active.id()).statusCode()).isEqualTo(200);
+        assertThat(get(BASE_URL + "/" + completed.id()).statusCode()).isEqualTo(404);
     }
 
     private static Todo createViaApi(String title) throws IOException, InterruptedException {

@@ -28,18 +28,18 @@ class TodoRepositoryTest {
         Todo first = repository.create("first", null, null);
         Todo second = repository.create("second", "details", Instant.now());
 
-        assertThat(first.getId()).isEqualTo(1);
-        assertThat(second.getId()).isEqualTo(2);
-        assertThat(first.isCompleted()).isFalse();
-        assertThat(second.isCompleted()).isFalse();
-        assertThat(second.getDescription()).isEqualTo("details");
+        assertThat(first.id()).isEqualTo(1);
+        assertThat(second.id()).isEqualTo(2);
+        assertThat(first.completed()).isFalse();
+        assertThat(second.completed()).isFalse();
+        assertThat(second.description()).isEqualTo("details");
     }
 
     @Test
     void findById_whenExists_returnsTodo() {
         Todo created = repository.create("title", null, null);
 
-        Optional<Todo> found = repository.findById(created.getId());
+        Optional<Todo> found = repository.findById(created.id());
 
         assertThat(found).contains(created);
     }
@@ -64,10 +64,12 @@ class TodoRepositoryTest {
     void findByCompleted_filtersByCompletionStatus() {
         Todo active = repository.create("active", null, null);
         Todo completed = repository.create("completed", null, null);
-        repository.toggleCompleted(completed.getId());
+        // Todo is an immutable record, so toggling replaces the stored instance rather than
+        // mutating "completed" in place - the returned value is the current one to compare against
+        Todo toggled = repository.toggleCompleted(completed.id()).orElseThrow();
 
         assertThat(repository.findByCompleted(false)).containsExactly(active);
-        assertThat(repository.findByCompleted(true)).containsExactly(completed);
+        assertThat(repository.findByCompleted(true)).containsExactly(toggled);
     }
 
     @Test
@@ -75,12 +77,12 @@ class TodoRepositoryTest {
         Todo created = repository.create("original", "original description", null);
         Instant newDueDate = Instant.now();
 
-        Optional<Todo> updated = repository.update(created.getId(), "updated", "updated description", newDueDate);
+        Optional<Todo> updated = repository.update(created.id(), "updated", "updated description", newDueDate);
 
         assertThat(updated).isPresent();
-        assertThat(updated.get().getTitle()).isEqualTo("updated");
-        assertThat(updated.get().getDescription()).isEqualTo("updated description");
-        assertThat(updated.get().getDueDate()).isEqualTo(newDueDate);
+        assertThat(updated.get().title()).isEqualTo("updated");
+        assertThat(updated.get().description()).isEqualTo("updated description");
+        assertThat(updated.get().dueDate()).isEqualTo(newDueDate);
     }
 
     @Test
@@ -92,13 +94,13 @@ class TodoRepositoryTest {
     void toggleCompleted_flipsCompletionStatus() {
         Todo created = repository.create("title", null, null);
 
-        Optional<Todo> toggledOn = repository.toggleCompleted(created.getId());
+        Optional<Todo> toggledOn = repository.toggleCompleted(created.id());
         assertThat(toggledOn).isPresent();
-        assertThat(toggledOn.get().isCompleted()).isTrue();
+        assertThat(toggledOn.get().completed()).isTrue();
 
-        Optional<Todo> toggledOff = repository.toggleCompleted(created.getId());
+        Optional<Todo> toggledOff = repository.toggleCompleted(created.id());
         assertThat(toggledOff).isPresent();
-        assertThat(toggledOff.get().isCompleted()).isFalse();
+        assertThat(toggledOff.get().completed()).isFalse();
     }
 
     @Test
@@ -110,10 +112,10 @@ class TodoRepositoryTest {
     void delete_whenExists_removesAndReturnsTrue() {
         Todo created = repository.create("title", null, null);
 
-        boolean deleted = repository.delete(created.getId());
+        boolean deleted = repository.delete(created.id());
 
         assertThat(deleted).isTrue();
-        assertThat(repository.findById(created.getId())).isEmpty();
+        assertThat(repository.findById(created.id())).isEmpty();
     }
 
     @Test
@@ -126,8 +128,8 @@ class TodoRepositoryTest {
         Todo active = repository.create("active", null, null);
         Todo completedOne = repository.create("completed one", null, null);
         Todo completedTwo = repository.create("completed two", null, null);
-        repository.toggleCompleted(completedOne.getId());
-        repository.toggleCompleted(completedTwo.getId());
+        repository.toggleCompleted(completedOne.id());
+        repository.toggleCompleted(completedTwo.id());
 
         int deletedCount = repository.deleteCompleted();
 
@@ -147,7 +149,7 @@ class TodoRepositoryTest {
         Todo created = repository.create("original", null, null);
         changeMessages.clear();
 
-        repository.update(created.getId(), "updated", null, null);
+        repository.update(created.id(), "updated", null, null);
 
         assertThat(changeMessages).containsExactly("Updated \"updated\"");
     }
@@ -164,8 +166,8 @@ class TodoRepositoryTest {
         Todo created = repository.create("title", null, null);
         changeMessages.clear();
 
-        repository.toggleCompleted(created.getId());
-        repository.toggleCompleted(created.getId());
+        repository.toggleCompleted(created.id());
+        repository.toggleCompleted(created.id());
 
         assertThat(changeMessages).containsExactly("Completed \"title\"", "Reactivated \"title\"");
     }
@@ -182,7 +184,7 @@ class TodoRepositoryTest {
         Todo created = repository.create("gone soon", null, null);
         changeMessages.clear();
 
-        repository.delete(created.getId());
+        repository.delete(created.id());
 
         assertThat(changeMessages).containsExactly("Deleted \"gone soon\"");
     }
@@ -197,7 +199,7 @@ class TodoRepositoryTest {
     @Test
     void deleteCompleted_notifiesWithCountAndCorrectPluralization() {
         Todo onlyCompleted = repository.create("solo", null, null);
-        repository.toggleCompleted(onlyCompleted.getId());
+        repository.toggleCompleted(onlyCompleted.id());
         changeMessages.clear();
 
         repository.deleteCompleted();

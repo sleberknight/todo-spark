@@ -68,7 +68,7 @@ class TodoWebSocketTest {
         List<String> received = new CopyOnWriteArrayList<>();
         WebSocket socket = connect(received);
         try {
-            repository.delete(created.getId());
+            repository.delete(created.id());
 
             await().atMost(Duration.ofSeconds(5)).until(() -> received.contains("Deleted \"delete me via ws\""));
         } finally {

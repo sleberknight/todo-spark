@@ -172,10 +172,10 @@ class TodoUiRoutesTest {
         postForm("/todos", form);
 
         return repository.findAll().stream()
-                .filter(todo -> todo.getTitle().equals(title))
-                .max(Comparator.comparing(Todo::getCreatedAt))
+                .filter(todo -> todo.title().equals(title))
+                .max(Comparator.comparing(Todo::createdAt))
                 .orElseThrow()
-                .getId();
+                .id();
     }
 
     private static HttpResponse<String> get(String path) throws IOException, InterruptedException {
