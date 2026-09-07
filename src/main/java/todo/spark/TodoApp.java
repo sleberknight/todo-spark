@@ -7,6 +7,9 @@ import static spark.Spark.staticFileLocation;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import todo.spark.repository.TodoRepository;
+import todo.spark.web.ExceptionHandlers;
+import todo.spark.web.TodoApiRoutes;
 
 public class TodoApp {
 
@@ -19,7 +22,11 @@ public class TodoApp {
         port(appPort);
         staticFileLocation("/public");
 
+        TodoRepository repository = new TodoRepository();
+
         get("/health", (request, response) -> "OK");
+        new TodoApiRoutes(repository).register();
+        ExceptionHandlers.register();
 
         awaitInitialization();
         LOG.info("todo-spark started on port {}", appPort);
