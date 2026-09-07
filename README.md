@@ -15,10 +15,20 @@ exercising a typical set of Spark features via both a server-rendered HTML UI an
 
 ## Running
 
+As a packaged jar (recommended - builds a self-contained uber jar via maven-shade-plugin):
+
+```
+mvn package
+java -jar target/todo-spark-1.0-SNAPSHOT.jar
+```
+
+or via Maven directly, without packaging:
+
 ```
 mvn compile exec:java
 ```
 
 or run `todo.spark.TodoApp#main` directly from an IDE.
 
-The app listens on port 4567 by default (override with a single port-number argument).
+The app listens on port 4567 by default (override with a single port-number argument,
+e.g. `java -jar target/todo-spark-1.0-SNAPSHOT.jar 8080`).
