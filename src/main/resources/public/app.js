@@ -1,12 +1,28 @@
 (function () {
-    var protocol = location.protocol === "https:" ? "wss:" : "ws:";
-    var socket = new WebSocket(protocol + "//" + location.host + "/ws");
     var toastHideTimer;
+    var reconnectDelayMs = 3000;
 
-    socket.onmessage = function (event) {
-        showToast(event.data);
-        refreshTodoList();
-    };
+    connect();
+
+    function connect() {
+        var protocol = location.protocol === "https:" ? "wss:" : "ws:";
+        var socket = new WebSocket(protocol + "//" + location.host + "/ws");
+
+        socket.onmessage = function (event) {
+            showToast(event.data);
+            refreshTodoList();
+        };
+
+        // a connection can die at any time (idle timeout, network blip, server restart);
+        // without this, live updates would just silently stop working until a manual reload
+        socket.onclose = function () {
+            setTimeout(connect, reconnectDelayMs);
+        };
+
+        socket.onerror = function () {
+            socket.close();
+        };
+    }
 
     function showToast(message) {
         var toast = document.getElementById("toast");
