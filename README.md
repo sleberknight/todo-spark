@@ -15,7 +15,17 @@ exercising a typical set of Spark features via both a server-rendered HTML UI an
 
 ## Running
 
-As a packaged jar (recommended - builds a self-contained uber jar via maven-shade-plugin):
+Easiest - one command, builds if needed:
+
+```
+etc/run.sh --build      # first run, or after pulling changes
+etc/run.sh               # subsequent runs, reuses the already-built jar
+etc/run.sh --build 8080  # optional port argument works with either form
+```
+
+If SDKMAN is installed, this picks up the JDK pinned in `.sdkmanrc` automatically.
+
+Or manually, as a packaged jar (builds a self-contained uber jar via maven-shade-plugin):
 
 ```
 mvn package
