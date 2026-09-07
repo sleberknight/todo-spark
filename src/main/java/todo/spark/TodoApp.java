@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import todo.spark.repository.TodoRepository;
 import todo.spark.web.ExceptionHandlers;
 import todo.spark.web.TodoApiRoutes;
+import todo.spark.web.TodoUiRoutes;
 
 public class TodoApp {
 
@@ -26,6 +27,7 @@ public class TodoApp {
 
         get("/health", (request, response) -> "OK");
         new TodoApiRoutes(repository).register();
+        new TodoUiRoutes(repository).register();
         ExceptionHandlers.register();
 
         awaitInitialization();

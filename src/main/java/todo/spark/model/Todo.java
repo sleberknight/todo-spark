@@ -1,6 +1,7 @@
 package todo.spark.model;
 
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Objects;
 
 public class Todo {
@@ -59,6 +60,15 @@ public class Todo {
 
     public void setDueDate(Instant dueDate) {
         this.dueDate = dueDate;
+    }
+
+    /**
+     * yyyy-MM-dd, suitable for display and for an HTML {@code <input type="date">} value.
+     * Empty string when there is no due date, since FreeMarker templates have no reliable
+     * way to format a raw {@link Instant} themselves.
+     */
+    public String getFormattedDueDate() {
+        return dueDate == null ? "" : dueDate.atZone(ZoneOffset.UTC).toLocalDate().toString();
     }
 
     @Override

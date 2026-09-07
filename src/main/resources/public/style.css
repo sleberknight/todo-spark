@@ -1,0 +1,114 @@
+body {
+    font-family: system-ui, sans-serif;
+    max-width: 40rem;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    color: #222;
+}
+
+h1 {
+    margin-bottom: 1.5rem;
+}
+
+.new-todo, .edit-todo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.new-todo input[name="title"], .edit-todo input[name="title"] {
+    flex: 2;
+}
+
+.new-todo input[name="description"], .edit-todo input[name="description"] {
+    flex: 3;
+}
+
+input, button {
+    font-size: 1rem;
+    padding: 0.4rem 0.6rem;
+}
+
+.edit-todo label {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.edit-todo input {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    box-sizing: border-box;
+}
+
+.filters {
+    margin-bottom: 1rem;
+}
+
+.filters a {
+    margin-right: 0.75rem;
+    text-decoration: none;
+    color: #555;
+}
+
+.filters a.active {
+    font-weight: bold;
+    color: #000;
+}
+
+.todos {
+    list-style: none;
+    padding: 0;
+}
+
+.todos li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.todos li.completed .title {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.todos li.empty {
+    color: #888;
+}
+
+.inline {
+    display: inline;
+}
+
+.toggle {
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+}
+
+.title {
+    flex: 1;
+}
+
+.description {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.due-date {
+    color: #a55;
+    font-size: 0.85rem;
+}
+
+.delete {
+    color: #a00;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
