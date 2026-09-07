@@ -7,16 +7,20 @@ import org.junit.jupiter.api.Test;
 import todo.spark.model.Todo;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 class TodoRepositoryTest {
 
     private TodoRepository repository;
+    private List<String> changeMessages;
 
     @BeforeEach
     void setUp() {
         repository = new TodoRepository();
+        changeMessages = new ArrayList<>();
+        repository.setChangeListener(changeMessages::add);
     }
 
     @Test
@@ -129,5 +133,85 @@ class TodoRepositoryTest {
 
         assertThat(deletedCount).isEqualTo(2);
         assertThat(repository.findAll()).containsExactly(active);
+    }
+
+    @Test
+    void create_notifiesChangeListener() {
+        repository.create("buy milk", null, null);
+
+        assertThat(changeMessages).containsExactly("Added \"buy milk\"");
+    }
+
+    @Test
+    void update_whenExists_notifiesChangeListener() {
+        Todo created = repository.create("original", null, null);
+        changeMessages.clear();
+
+        repository.update(created.getId(), "updated", null, null);
+
+        assertThat(changeMessages).containsExactly("Updated \"updated\"");
+    }
+
+    @Test
+    void update_whenMissing_doesNotNotify() {
+        repository.update(999, "title", null, null);
+
+        assertThat(changeMessages).isEmpty();
+    }
+
+    @Test
+    void toggleCompleted_notifiesWithCompletedOrReactivatedWording() {
+        Todo created = repository.create("title", null, null);
+        changeMessages.clear();
+
+        repository.toggleCompleted(created.getId());
+        repository.toggleCompleted(created.getId());
+
+        assertThat(changeMessages).containsExactly("Completed \"title\"", "Reactivated \"title\"");
+    }
+
+    @Test
+    void toggleCompleted_whenMissing_doesNotNotify() {
+        repository.toggleCompleted(999);
+
+        assertThat(changeMessages).isEmpty();
+    }
+
+    @Test
+    void delete_whenExists_notifiesChangeListener() {
+        Todo created = repository.create("gone soon", null, null);
+        changeMessages.clear();
+
+        repository.delete(created.getId());
+
+        assertThat(changeMessages).containsExactly("Deleted \"gone soon\"");
+    }
+
+    @Test
+    void delete_whenMissing_doesNotNotify() {
+        repository.delete(999);
+
+        assertThat(changeMessages).isEmpty();
+    }
+
+    @Test
+    void deleteCompleted_notifiesWithCountAndCorrectPluralization() {
+        Todo onlyCompleted = repository.create("solo", null, null);
+        repository.toggleCompleted(onlyCompleted.getId());
+        changeMessages.clear();
+
+        repository.deleteCompleted();
+
+        assertThat(changeMessages).containsExactly("Cleared 1 completed todo");
+    }
+
+    @Test
+    void deleteCompleted_whenNoneCompleted_doesNotNotify() {
+        repository.create("still active", null, null);
+        changeMessages.clear();
+
+        repository.deleteCompleted();
+
+        assertThat(changeMessages).isEmpty();
     }
 }

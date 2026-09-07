@@ -112,3 +112,22 @@ input, button {
     border: none;
     cursor: pointer;
 }
+
+#toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(0.5rem);
+    background: #333;
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.3rem;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+#toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}

@@ -45,5 +45,6 @@
     <button type="submit">Clear completed</button>
 </form>
 </#if>
+<script src="/app.js"></script>
 </body>
 </html>
