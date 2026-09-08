@@ -56,9 +56,14 @@ public class TodoApp {
     /**
      * Fixed under the user's home directory rather than the process's working directory,
      * so the same data is found regardless of where the jar happens to be launched from.
+     * Overridable via the {@code todo.spark.dbDir} system property so testing/verification
+     * never has to touch (or delete) the real data directory.
      */
     private static Path resolveDatabasePath() {
-        Path directory = Path.of(System.getProperty("user.home"), ".todo-spark");
+        String override = System.getProperty("todo.spark.dbDir");
+        Path directory = override != null
+                ? Path.of(override)
+                : Path.of(System.getProperty("user.home"), ".todo-spark");
         try {
             Files.createDirectories(directory);
         } catch (IOException e) {

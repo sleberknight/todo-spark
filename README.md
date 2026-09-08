@@ -49,6 +49,14 @@ home directory rather than the process's working directory, so the same data is 
 matter where the jar is launched from. The resolved path is logged at startup. Delete the
 file (or the whole `~/.todo-spark` directory) to reset to an empty list.
 
+To point the app at a different directory (e.g. for manual testing/verification, so a real
+data directory is never touched or deleted out from under a running instance), set the
+`todo.spark.dbDir` system property:
+
+```
+java -Dtodo.spark.dbDir=/tmp/todo-spark-scratch -jar target/todo-spark-1.0-SNAPSHOT.jar
+```
+
 ## Testing
 
 `TodoBrowserTest` drives a real (headless) browser via [Playwright](https://playwright.dev/java/)
