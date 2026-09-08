@@ -8,7 +8,7 @@ exercising a typical set of Spark features via both a server-rendered HTML UI an
 ## Prerequisites
 
 - Java 25
-- The fork's `spark-core:3.0.0-SNAPSHOT` installed locally:
+- The fork's `spark-core:3.0.0-alpha.1-SNAPSHOT` installed locally:
 
   ```
   cd /path/to/dsingley/spark
