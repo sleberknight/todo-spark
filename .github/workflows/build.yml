@@ -7,6 +7,11 @@ on:
     types: [ opened, synchronize, reopened ]
     paths-ignore:
       - '**/*.md'
+  # Runs even without a todo-spark commit, since this always builds against the
+  # latest dsingley/spark (ossrh) rather than a pinned commit - catches breakage
+  # from upstream fork changes before it's noticed some other way.
+  schedule:
+    - cron: '0 6,18 * * *'
 jobs:
   build:
     name: Build
