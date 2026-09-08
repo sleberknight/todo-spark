@@ -11,6 +11,7 @@ import static spark.Spark.webSocket;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import todo.spark.model.Todo;
 import todo.spark.repository.TodoRepository;
 import todo.spark.repository.InMemoryTodoRepository;
 
@@ -54,8 +55,9 @@ class TodoWebSocketTest {
         List<String> received = new CopyOnWriteArrayList<>();
         WebSocket socket = connect(received);
         try {
-            triggerUntilReceived(received, "Added \"buy milk\"",
-                    () -> repository.create("buy milk", null, null));
+            repository.create("buy milk", null, null);
+
+            await().atMost(Duration.ofSeconds(5)).until(() -> received.contains("Added \"buy milk\""));
         } finally {
             socket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
         }
@@ -63,33 +65,27 @@ class TodoWebSocketTest {
 
     @Test
     void broadcastsWhenATodoIsDeleted() throws Exception {
+        Todo created = repository.create("delete me via ws", null, null);
         List<String> received = new CopyOnWriteArrayList<>();
         WebSocket socket = connect(received);
         try {
-            triggerUntilReceived(received, "Deleted \"delete me via ws\"",
-                    () -> repository.delete(repository.create("delete me via ws", null, null).id()));
+            repository.delete(created.id());
+
+            await().atMost(Duration.ofSeconds(5)).until(() -> received.contains("Deleted \"delete me via ws\""));
         } finally {
             socket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
         }
     }
 
     /**
-     * The WebSocket handshake completing client-side and the server registering the session
-     * server-side aren't ordered against each other - a trigger that fires in that narrow window
-     * is silently dropped rather than delayed, so simply waiting longer wouldn't help. Retrying
-     * the trigger self-corrects as soon as registration catches up.
+     * The client-side handshake future completing only means the HTTP 101 response was
+     * received - it says nothing about whether the server has run its @OnWebSocketOpen
+     * callback and registered the session yet. A repository change triggered before that
+     * registration happens is broadcast to a session set that doesn't include this connection
+     * yet, and is lost rather than delayed, so waiting longer afterward wouldn't help. Waiting
+     * here for the server to actually register the session closes that race at its source,
+     * rather than retrying the trigger and hoping some attempt lands after registration.
      */
-    private static void triggerUntilReceived(List<String> received, String expectedMessage, Runnable trigger) {
-        trigger.run();
-        await().atMost(Duration.ofSeconds(5)).until(() -> {
-            if (received.contains(expectedMessage)) {
-                return true;
-            }
-            trigger.run();
-            return received.contains(expectedMessage);
-        });
-    }
-
     private static WebSocket connect(List<String> received) throws Exception {
         WebSocket.Listener listener = new WebSocket.Listener() {
             @Override
@@ -99,9 +95,11 @@ class TodoWebSocketTest {
                 return null;
             }
         };
-        return HttpClient.newHttpClient()
+        WebSocket socket = HttpClient.newHttpClient()
                 .newWebSocketBuilder()
                 .buildAsync(URI.create("ws://localhost:" + TEST_PORT + "/ws"), listener)
                 .get(5, TimeUnit.SECONDS);
+        await().atMost(Duration.ofSeconds(5)).until(() -> TodoWebSocket.connectedSessionCount() > 0);
+        return socket;
     }
 }

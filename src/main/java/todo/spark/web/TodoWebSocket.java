@@ -38,6 +38,15 @@ public class TodoWebSocket {
         session = null;
     }
 
+    /**
+     * The client-side handshake completing and the server registering the session here
+     * aren't ordered against each other - tests that need to know a connection is actually
+     * ready to receive broadcasts (rather than just that the handshake finished) can poll this.
+     */
+    static int connectedSessionCount() {
+        return SESSIONS.size();
+    }
+
     public static void broadcast(String message) {
         for (Session session : SESSIONS) {
             // an unclean disconnect (e.g. the client's own location.reload()) can leave a
