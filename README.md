@@ -1,5 +1,7 @@
 # todo-spark
 
+[![build](https://github.com/sleberknight/todo-spark/actions/workflows/build.yml/badge.svg)](https://github.com/sleberknight/todo-spark/actions/workflows/build.yml)
+
 A sample TODO application built on [Spark](https://github.com/dsingley/spark) (dsingley's fork),
 exercising a typical set of Spark features via both a server-rendered HTML UI and a JSON REST API.
 
