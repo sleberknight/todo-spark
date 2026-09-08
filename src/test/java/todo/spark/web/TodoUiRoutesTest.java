@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import todo.spark.model.Todo;
 import todo.spark.repository.TodoRepository;
+import todo.spark.repository.InMemoryTodoRepository;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,7 +35,7 @@ class TodoUiRoutesTest {
     static void startServer() {
         port(TEST_PORT);
         staticFileLocation("/public");
-        repository = new TodoRepository();
+        repository = new InMemoryTodoRepository();
         new TodoUiRoutes(repository).register();
         Filters.register();
         ExceptionHandlers.register();

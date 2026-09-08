@@ -9,6 +9,7 @@ import static spark.Spark.webSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import todo.spark.repository.TodoRepository;
+import todo.spark.repository.InMemoryTodoRepository;
 import todo.spark.web.ExceptionHandlers;
 import todo.spark.web.Filters;
 import todo.spark.web.TodoApiRoutes;
@@ -26,7 +27,7 @@ public class TodoApp {
         port(appPort);
         staticFileLocation("/public");
 
-        TodoRepository repository = new TodoRepository();
+        TodoRepository repository = new InMemoryTodoRepository();
         repository.setChangeListener(TodoWebSocket::broadcast);
 
         // webSocket(...) must be registered before anything that can trigger Spark's lazy

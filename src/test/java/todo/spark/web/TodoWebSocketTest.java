@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import todo.spark.model.Todo;
 import todo.spark.repository.TodoRepository;
+import todo.spark.repository.InMemoryTodoRepository;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -36,7 +37,7 @@ class TodoWebSocketTest {
     @BeforeAll
     static void startServer() {
         port(TEST_PORT);
-        repository = new TodoRepository();
+        repository = new InMemoryTodoRepository();
         repository.setChangeListener(TodoWebSocket::broadcast);
         webSocket("/ws", TodoWebSocket.class);
         init();

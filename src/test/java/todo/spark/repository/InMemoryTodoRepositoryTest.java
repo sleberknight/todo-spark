@@ -11,14 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-class TodoRepositoryTest {
+class InMemoryTodoRepositoryTest {
 
     private TodoRepository repository;
     private List<String> changeMessages;
 
     @BeforeEach
     void setUp() {
-        repository = new TodoRepository();
+        repository = new InMemoryTodoRepository();
         changeMessages = new ArrayList<>();
         repository.setChangeListener(changeMessages::add);
     }

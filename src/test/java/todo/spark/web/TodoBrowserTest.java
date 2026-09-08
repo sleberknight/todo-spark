@@ -17,6 +17,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import todo.spark.repository.TodoRepository;
+import todo.spark.repository.InMemoryTodoRepository;
 
 /**
  * Real-browser tests via Playwright, covering behavior the HTTP-only tests in
@@ -35,7 +36,7 @@ class TodoBrowserTest {
     static void startServerAndBrowser() {
         port(TEST_PORT);
         staticFileLocation("/public");
-        TodoRepository repository = new TodoRepository();
+        TodoRepository repository = new InMemoryTodoRepository();
         repository.setChangeListener(TodoWebSocket::broadcast);
         webSocket("/ws", TodoWebSocket.class);
         new TodoApiRoutes(repository).register();

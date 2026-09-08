@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import todo.spark.model.Todo;
 import todo.spark.repository.TodoRepository;
+import todo.spark.repository.InMemoryTodoRepository;
 
 import java.io.IOException;
 import java.net.URI;
@@ -27,7 +28,7 @@ class TodoApiRoutesTest {
     @BeforeAll
     static void startServer() {
         port(TEST_PORT);
-        new TodoApiRoutes(new TodoRepository()).register();
+        new TodoApiRoutes(new InMemoryTodoRepository()).register();
         Filters.register();
         ExceptionHandlers.register();
         awaitInitialization();
