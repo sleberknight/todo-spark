@@ -4,6 +4,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # spark-core is deliberately pinned to this fork's unpublished SNAPSHOT, built from
+    # source by the CI workflow rather than resolved from any repository - there's never
+    # a published version for Dependabot to compare against, so don't bother checking it.
+    ignore:
+      - dependency-name: "com.dsingley.sparkjava:spark-core"
     groups:
       dev-deps:
         dependency-type: "development"
