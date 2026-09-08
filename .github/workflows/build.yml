@@ -48,7 +48,14 @@ jobs:
         run: mvn -B -V install -DskipTests
 
       # TodoBrowserTest needs the Playwright browser binaries, which aren't a Maven
-      # dependency - install them (with OS-level deps) before running the test suite.
+      # dependency and aren't cheap to download - cache them by the same pom.xml hash
+      # used for the Maven cache, so a playwright.version bump invalidates it too.
+      - name: Cache Playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pom.xml') }}
+
       - name: Install Playwright browsers
         run: |
           mvn -B -V test-compile
@@ -56,4 +63,10 @@ jobs:
           java -cp "$(cat /tmp/cp.txt):target/test-classes:target/classes" com.microsoft.playwright.CLI install --with-deps chromium
 
       - name: Build and test todo-spark
+        # Playwright's host-dependency check validates libraries for every browser
+        # engine it knows about, not just the one actually installed/used here - it
+        # always flags WebKit/GStreamer libs even though only Chromium is ever
+        # launched, so skip that check rather than chase permanently-missing libs.
+        env:
+          PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: '1'
         run: mvn -B -V verify
