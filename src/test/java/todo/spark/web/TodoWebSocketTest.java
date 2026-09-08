@@ -11,7 +11,6 @@ import static spark.Spark.webSocket;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import todo.spark.model.Todo;
 import todo.spark.repository.TodoRepository;
 import todo.spark.repository.InMemoryTodoRepository;
 
@@ -55,9 +54,8 @@ class TodoWebSocketTest {
         List<String> received = new CopyOnWriteArrayList<>();
         WebSocket socket = connect(received);
         try {
-            repository.create("buy milk", null, null);
-
-            await().atMost(Duration.ofSeconds(5)).until(() -> received.contains("Added \"buy milk\""));
+            triggerUntilReceived(received, "Added \"buy milk\"",
+                    () -> repository.create("buy milk", null, null));
         } finally {
             socket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
         }
@@ -65,16 +63,31 @@ class TodoWebSocketTest {
 
     @Test
     void broadcastsWhenATodoIsDeleted() throws Exception {
-        Todo created = repository.create("delete me via ws", null, null);
         List<String> received = new CopyOnWriteArrayList<>();
         WebSocket socket = connect(received);
         try {
-            repository.delete(created.id());
-
-            await().atMost(Duration.ofSeconds(5)).until(() -> received.contains("Deleted \"delete me via ws\""));
+            triggerUntilReceived(received, "Deleted \"delete me via ws\"",
+                    () -> repository.delete(repository.create("delete me via ws", null, null).id()));
         } finally {
             socket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
         }
+    }
+
+    /**
+     * The WebSocket handshake completing client-side and the server registering the session
+     * server-side aren't ordered against each other - a trigger that fires in that narrow window
+     * is silently dropped rather than delayed, so simply waiting longer wouldn't help. Retrying
+     * the trigger self-corrects as soon as registration catches up.
+     */
+    private static void triggerUntilReceived(List<String> received, String expectedMessage, Runnable trigger) {
+        trigger.run();
+        await().atMost(Duration.ofSeconds(5)).until(() -> {
+            if (received.contains(expectedMessage)) {
+                return true;
+            }
+            trigger.run();
+            return received.contains(expectedMessage);
+        });
     }
 
     private static WebSocket connect(List<String> received) throws Exception {
