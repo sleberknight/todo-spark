@@ -32,13 +32,19 @@ mvn package
 java -jar target/todo-spark-1.0-SNAPSHOT.jar
 ```
 
-or via Maven directly, without packaging:
-
-```
-mvn compile exec:java
-```
-
 or run `todo.spark.TodoApp#main` directly from an IDE.
 
 The app listens on port 4567 by default (override with a single port-number argument,
 e.g. `java -jar target/todo-spark-1.0-SNAPSHOT.jar 8080`).
+
+## Testing
+
+`TodoBrowserTest` drives a real (headless) browser via [Playwright](https://playwright.dev/java/)
+to cover things HTTP-only tests can't: actual JS execution, the WebSocket connection, and
+whether a page did or didn't navigate. It needs the Playwright browser binaries downloaded
+once - `mvn test` will fail with a clear error if they're missing:
+
+```
+mvn dependency:build-classpath -Dmdep.includeScope=test -Dmdep.outputFile=/tmp/cp.txt
+java -cp "$(cat /tmp/cp.txt):target/test-classes:target/classes" com.microsoft.playwright.CLI install chromium
+```
