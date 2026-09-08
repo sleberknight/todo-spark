@@ -37,6 +37,13 @@ or run `todo.spark.TodoApp#main` directly from an IDE.
 The app listens on port 4567 by default (override with a single port-number argument,
 e.g. `java -jar target/todo-spark-1.0-SNAPSHOT.jar 8080`).
 
+## Data
+
+Todos are persisted to a SQLite database at `~/.todo-spark/todo.db` - fixed under the user's
+home directory rather than the process's working directory, so the same data is found no
+matter where the jar is launched from. The resolved path is logged at startup. Delete the
+file (or the whole `~/.todo-spark` directory) to reset to an empty list.
+
 ## Testing
 
 `TodoBrowserTest` drives a real (headless) browser via [Playwright](https://playwright.dev/java/)
