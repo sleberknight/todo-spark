@@ -117,6 +117,13 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>todo.spark.TodoApp</mainClass>
+                                    <manifestEntries>
+                                        <!-- silences the JDK's native-access warning from sqlite-jdbc
+                                             loading its bundled native library; honored automatically
+                                             by "java -jar" (but not by an IDE launch off the classpath,
+                                             which needs the equivalent VM option set explicitly) -->
+                                        <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+                                    </manifestEntries>
                                 </transformer>
                                 <!-- merges (rather than overwrites) META-INF/services entries from
                                      multiple jars - needed since Jetty and SLF4J both rely on

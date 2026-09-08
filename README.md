@@ -32,7 +32,12 @@ mvn package
 java -jar target/todo-spark-1.0-SNAPSHOT.jar
 ```
 
-or run `todo.spark.TodoApp#main` directly from an IDE.
+or run `todo.spark.TodoApp#main` directly from an IDE - in which case add
+`--enable-native-access=ALL-UNNAMED` as a VM option on that run configuration, since the
+packaged jar's manifest (which silences this automatically for `java -jar`) doesn't apply
+to a classpath-based IDE launch. Without it, `sqlite-jdbc` loading its native library
+prints a JDK warning at startup - harmless today, but the JDK states this will eventually
+be blocked without it.
 
 The app listens on port 4567 by default (override with a single port-number argument,
 e.g. `java -jar target/todo-spark-1.0-SNAPSHOT.jar 8080`).
