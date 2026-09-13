@@ -30,8 +30,8 @@ public class FreeMarkerEngine extends TemplateEngine {
     }
 
     private Configuration createConfiguration() {
-        Configuration configuration = new Configuration(Configuration.VERSION_2_3_32);
-        configuration.setClassForTemplateLoading(FreeMarkerEngine.class, "/templates");
-        return configuration;
+        var newConfig = new Configuration(Configuration.VERSION_2_3_32);
+        newConfig.setClassForTemplateLoading(FreeMarkerEngine.class, "/templates");
+        return newConfig;
     }
 }
