@@ -67,7 +67,7 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
 
     @Override
     public synchronized Optional<Todo> findById(long id) {
-        String sql = "SELECT * FROM todos WHERE id = ?";
+        String sql = "SELECT id, title, description, completed, created_at, due_date FROM todos WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
             try (ResultSet rs = statement.executeQuery()) {
@@ -80,7 +80,7 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
 
     @Override
     public synchronized List<Todo> findAll() {
-        String sql = "SELECT * FROM todos ORDER BY created_at";
+        String sql = "SELECT id, title, description, completed, created_at, due_date FROM todos ORDER BY created_at";
         try (Statement statement = connection.createStatement();
              ResultSet rs = statement.executeQuery(sql)) {
             return mapRows(rs);
@@ -91,7 +91,7 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
 
     @Override
     public synchronized List<Todo> findByCompleted(boolean completed) {
-        String sql = "SELECT * FROM todos WHERE completed = ? ORDER BY created_at";
+        String sql = "SELECT id, title, description, completed, created_at, due_date FROM todos WHERE completed = ? ORDER BY created_at";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, completed ? 1 : 0);
             try (ResultSet rs = statement.executeQuery()) {
