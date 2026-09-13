@@ -150,7 +150,7 @@ class TodoUiRoutesTest {
 
     @Test
     void clearCompleted_removesOnlyCompletedTodos() throws Exception {
-        long activeId = createAndGetId("stays active in ui", null, null);
+        createAndGetId("stays active in ui", null, null);
         long completedId = createAndGetId("gets cleared in ui", null, null);
         post("/todos/" + completedId + "/toggle");
 
