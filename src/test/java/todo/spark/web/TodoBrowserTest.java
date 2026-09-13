@@ -16,8 +16,8 @@ import com.microsoft.playwright.Playwright;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import todo.spark.repository.TodoRepository;
 import todo.spark.repository.InMemoryTodoRepository;
+import todo.spark.repository.TodoRepository;
 
 /**
  * Real-browser tests via Playwright, covering behavior the HTTP-only tests in

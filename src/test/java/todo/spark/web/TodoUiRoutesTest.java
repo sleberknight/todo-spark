@@ -11,8 +11,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import todo.spark.model.Todo;
-import todo.spark.repository.TodoRepository;
 import todo.spark.repository.InMemoryTodoRepository;
+import todo.spark.repository.TodoRepository;
 
 import java.io.IOException;
 import java.net.URI;
