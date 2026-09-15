@@ -11,13 +11,11 @@ import static spark.Spark.webSocket;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserType;
-import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import todo.spark.repository.InMemoryTodoRepository;
-import todo.spark.repository.TodoRepository;
 
 /**
  * Real-browser tests via Playwright, covering behavior the HTTP-only tests in
@@ -36,7 +34,7 @@ class TodoBrowserTest {
     static void startServerAndBrowser() {
         port(TEST_PORT);
         staticFileLocation("/public");
-        TodoRepository repository = new InMemoryTodoRepository();
+        var repository = new InMemoryTodoRepository();
         repository.setChangeListener(TodoWebSocket::broadcast);
         webSocket("/ws", TodoWebSocket.class);
         new TodoApiRoutes(repository).register();
@@ -59,7 +57,7 @@ class TodoBrowserTest {
 
     @Test
     void addingATodo_showsItInTheList() {
-        try (Page page = browser.newPage()) {
+        try (var page = browser.newPage()) {
             page.navigate(BASE_URL);
 
             page.fill(".new-todo input[name=title]", "buy milk via playwright");
@@ -71,7 +69,7 @@ class TodoBrowserTest {
 
     @Test
     void togglingATodo_marksItCompleted() {
-        try (Page page = browser.newPage()) {
+        try (var page = browser.newPage()) {
             page.navigate(BASE_URL);
 
             page.fill(".new-todo input[name=title]", "toggle via playwright");
@@ -84,7 +82,7 @@ class TodoBrowserTest {
 
     @Test
     void liveUpdate_reachesOtherOpenTabWithoutNavigatingAway() {
-        try (Page tab1 = browser.newPage(); Page tab2 = browser.newPage()) {
+        try (var tab1 = browser.newPage(); var tab2 = browser.newPage()) {
             tab1.navigate(BASE_URL);
             tab2.navigate(BASE_URL);
 

@@ -11,7 +11,6 @@ import static spark.Spark.webSocket;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import todo.spark.model.Todo;
 import todo.spark.repository.InMemoryTodoRepository;
 import todo.spark.repository.TodoRepository;
 
@@ -52,28 +51,28 @@ class TodoWebSocketTest {
 
     @Test
     void broadcastsWhenATodoIsCreated() throws Exception {
-        List<String> received = new CopyOnWriteArrayList<>();
-        WebSocket socket = connect(received);
+        var received = new CopyOnWriteArrayList<String>();
+        var webSocket = connect(received);
         try {
             repository.create("buy milk", null, null);
 
             await().atMost(Duration.ofSeconds(5)).until(() -> received.contains("Added \"buy milk\""));
         } finally {
-            socket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
+            webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
         }
     }
 
     @Test
     void broadcastsWhenATodoIsDeleted() throws Exception {
-        Todo created = repository.create("delete me via ws", null, null);
-        List<String> received = new CopyOnWriteArrayList<>();
-        WebSocket socket = connect(received);
+        var created = repository.create("delete me via ws", null, null);
+        var received = new CopyOnWriteArrayList<String>();
+        var webSocket = connect(received);
         try {
             repository.delete(created.id());
 
             await().atMost(Duration.ofSeconds(5)).until(() -> received.contains("Deleted \"delete me via ws\""));
         } finally {
-            socket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
+            webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
         }
     }
 
@@ -87,7 +86,7 @@ class TodoWebSocketTest {
      * rather than retrying the trigger and hoping some attempt lands after registration.
      */
     private static WebSocket connect(List<String> received) throws Exception {
-        WebSocket.Listener listener = new WebSocket.Listener() {
+        var listener = new WebSocket.Listener() {
             @Override
             public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
                 received.add(data.toString());
@@ -95,7 +94,7 @@ class TodoWebSocketTest {
                 return null;
             }
         };
-        WebSocket socket = HttpClient.newHttpClient()
+        var socket = HttpClient.newHttpClient()
                 .newWebSocketBuilder()
                 .buildAsync(URI.create("ws://localhost:" + TEST_PORT + "/ws"), listener)
                 .get(5, TimeUnit.SECONDS);

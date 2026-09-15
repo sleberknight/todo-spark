@@ -4,12 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import todo.spark.model.Todo;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 class InMemoryTodoRepositoryTest {
 
@@ -25,8 +23,8 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void create_assignsIncrementingIdsAndDefaultsToIncomplete() {
-        Todo first = repository.create("first", null, null);
-        Todo second = repository.create("second", "details", Instant.now());
+        var first = repository.create("first", null, null);
+        var second = repository.create("second", "details", Instant.now());
 
         assertThat(first.id()).isEqualTo(1);
         assertThat(second.id()).isEqualTo(2);
@@ -37,9 +35,9 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void findById_whenExists_returnsTodo() {
-        Todo created = repository.create("title", null, null);
+        var created = repository.create("title", null, null);
 
-        Optional<Todo> found = repository.findById(created.id());
+        var found = repository.findById(created.id());
 
         assertThat(found).contains(created);
     }
@@ -51,22 +49,22 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void findAll_returnsTodosInCreationOrder() {
-        Todo first = repository.create("first", null, null);
-        Todo second = repository.create("second", null, null);
-        Todo third = repository.create("third", null, null);
+        var first = repository.create("first", null, null);
+        var second = repository.create("second", null, null);
+        var third = repository.create("third", null, null);
 
-        List<Todo> all = repository.findAll();
+        var all = repository.findAll();
 
         assertThat(all).containsExactly(first, second, third);
     }
 
     @Test
     void findByCompleted_filtersByCompletionStatus() {
-        Todo active = repository.create("active", null, null);
-        Todo completed = repository.create("completed", null, null);
+        var active = repository.create("active", null, null);
+        var completed = repository.create("completed", null, null);
         // Todo is an immutable record, so toggling replaces the stored instance rather than
         // mutating "completed" in place - the returned value is the current one to compare against
-        Todo toggled = repository.toggleCompleted(completed.id()).orElseThrow();
+        var toggled = repository.toggleCompleted(completed.id()).orElseThrow();
 
         assertThat(repository.findByCompleted(false)).containsExactly(active);
         assertThat(repository.findByCompleted(true)).containsExactly(toggled);
@@ -74,10 +72,10 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void update_whenExists_updatesFieldsAndReturnsTodo() {
-        Todo created = repository.create("original", "original description", null);
-        Instant newDueDate = Instant.now();
+        var created = repository.create("original", "original description", null);
+        var newDueDate = Instant.now();
 
-        Optional<Todo> updated = repository.update(created.id(), "updated", "updated description", newDueDate);
+        var updated = repository.update(created.id(), "updated", "updated description", newDueDate);
 
         assertThat(updated).isPresent();
         assertThat(updated.get().title()).isEqualTo("updated");
@@ -92,13 +90,13 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void toggleCompleted_flipsCompletionStatus() {
-        Todo created = repository.create("title", null, null);
+        var created = repository.create("title", null, null);
 
-        Optional<Todo> toggledOn = repository.toggleCompleted(created.id());
+        var toggledOn = repository.toggleCompleted(created.id());
         assertThat(toggledOn).isPresent();
         assertThat(toggledOn.get().completed()).isTrue();
 
-        Optional<Todo> toggledOff = repository.toggleCompleted(created.id());
+        var toggledOff = repository.toggleCompleted(created.id());
         assertThat(toggledOff).isPresent();
         assertThat(toggledOff.get().completed()).isFalse();
     }
@@ -110,9 +108,9 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void delete_whenExists_removesAndReturnsTrue() {
-        Todo created = repository.create("title", null, null);
+        var created = repository.create("title", null, null);
 
-        boolean deleted = repository.delete(created.id());
+        var deleted = repository.delete(created.id());
 
         assertThat(deleted).isTrue();
         assertThat(repository.findById(created.id())).isEmpty();
@@ -125,13 +123,13 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void deleteCompleted_removesOnlyCompletedTodosAndReturnsCount() {
-        Todo active = repository.create("active", null, null);
-        Todo completedOne = repository.create("completed one", null, null);
-        Todo completedTwo = repository.create("completed two", null, null);
+        var active = repository.create("active", null, null);
+        var completedOne = repository.create("completed one", null, null);
+        var completedTwo = repository.create("completed two", null, null);
         repository.toggleCompleted(completedOne.id());
         repository.toggleCompleted(completedTwo.id());
 
-        int deletedCount = repository.deleteCompleted();
+        var deletedCount = repository.deleteCompleted();
 
         assertThat(deletedCount).isEqualTo(2);
         assertThat(repository.findAll()).containsExactly(active);
@@ -146,7 +144,7 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void update_whenExists_notifiesChangeListener() {
-        Todo created = repository.create("original", null, null);
+        var created = repository.create("original", null, null);
         changeMessages.clear();
 
         repository.update(created.id(), "updated", null, null);
@@ -163,7 +161,7 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void toggleCompleted_notifiesWithCompletedOrReactivatedWording() {
-        Todo created = repository.create("title", null, null);
+        var created = repository.create("title", null, null);
         changeMessages.clear();
 
         repository.toggleCompleted(created.id());
@@ -181,7 +179,7 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void delete_whenExists_notifiesChangeListener() {
-        Todo created = repository.create("gone soon", null, null);
+        var created = repository.create("gone soon", null, null);
         changeMessages.clear();
 
         repository.delete(created.id());
@@ -198,7 +196,7 @@ class InMemoryTodoRepositoryTest {
 
     @Test
     void deleteCompleted_notifiesWithCountAndCorrectPluralization() {
-        Todo onlyCompleted = repository.create("solo", null, null);
+        var onlyCompleted = repository.create("solo", null, null);
         repository.toggleCompleted(onlyCompleted.id());
         changeMessages.clear();
 

@@ -24,8 +24,8 @@ public class InMemoryTodoRepository extends AbstractTodoRepository {
 
     @Override
     public Todo create(String title, String description, Instant dueDate) {
-        long id = nextId.getAndIncrement();
-        Todo todo = new Todo(id, title, description, dueDate);
+        var id = nextId.getAndIncrement();
+        var todo = new Todo(id, title, description, dueDate);
         todosById.put(id, todo);
         notifyChange("Added \"%s\"".formatted(title));
         return todo;
@@ -53,7 +53,7 @@ public class InMemoryTodoRepository extends AbstractTodoRepository {
     @Override
     public Optional<Todo> update(long id, String title, String description, Instant dueDate) {
         return findById(id).map(todo -> {
-            Todo updated = new Todo(todo.id(), title, description, todo.completed(), todo.createdAt(), dueDate);
+            var updated = new Todo(todo.id(), title, description, todo.completed(), todo.createdAt(), dueDate);
             todosById.put(id, updated);
             notifyChange("Updated \"%s\"".formatted(title));
             return updated;
@@ -63,7 +63,7 @@ public class InMemoryTodoRepository extends AbstractTodoRepository {
     @Override
     public Optional<Todo> toggleCompleted(long id) {
         return findById(id).map(todo -> {
-            Todo toggled = new Todo(todo.id(), todo.title(), todo.description(), !todo.completed(), todo.createdAt(), todo.dueDate());
+            var toggled = new Todo(todo.id(), todo.title(), todo.description(), !todo.completed(), todo.createdAt(), todo.dueDate());
             todosById.put(id, toggled);
             notifyChange("%s \"%s\"".formatted(toggled.completed() ? "Completed" : "Reactivated", toggled.title()));
             return toggled;
@@ -72,7 +72,7 @@ public class InMemoryTodoRepository extends AbstractTodoRepository {
 
     @Override
     public boolean delete(long id) {
-        Todo removed = todosById.remove(id);
+        var removed = todosById.remove(id);
         if (nonNull(removed)) {
             notifyChange("Deleted \"%s\"".formatted(removed.title()));
             return true;
@@ -82,7 +82,7 @@ public class InMemoryTodoRepository extends AbstractTodoRepository {
 
     @Override
     public int deleteCompleted() {
-        List<Long> completedIds = findByCompleted(true).stream().map(Todo::id).toList();
+        var completedIds = findByCompleted(true).stream().map(Todo::id).toList();
         completedIds.forEach(todosById::remove);
         if (!completedIds.isEmpty()) {
             notifyChange("Cleared %d completed todo%s".formatted(completedIds.size(), completedIds.size() == 1 ? "" : "s"));

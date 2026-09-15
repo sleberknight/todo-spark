@@ -1,7 +1,6 @@
 package todo.spark.web;
 
 import freemarker.template.Configuration;
-import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import spark.ModelAndView;
 import spark.TemplateEngine;
@@ -20,8 +19,8 @@ public class FreeMarkerEngine extends TemplateEngine {
     @Override
     public String render(ModelAndView modelAndView) {
         try {
-            StringWriter writer = new StringWriter();
-            Template template = configuration.getTemplate(modelAndView.getViewName());
+            var writer = new StringWriter();
+            var template = configuration.getTemplate(modelAndView.getViewName());
             template.process(modelAndView.getModel(), writer);
             return writer.toString();
         } catch (IOException | TemplateException e) {

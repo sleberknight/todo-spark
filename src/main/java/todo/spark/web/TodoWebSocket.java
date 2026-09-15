@@ -48,7 +48,7 @@ public class TodoWebSocket {
     }
 
     public static void broadcast(String message) {
-        for (Session session : SESSIONS) {
+        for (var session : SESSIONS) {
             // an unclean disconnect (e.g. the client's own location.reload()) can leave a
             // stale, already-closed session in SESSIONS before onWebSocketClose fires (or
             // without it firing at all) - skip and clean those up rather than trying to

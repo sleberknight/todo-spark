@@ -9,11 +9,9 @@ import todo.spark.model.Todo;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 class SqliteTodoRepositoryTest {
 
@@ -35,7 +33,7 @@ class SqliteTodoRepositoryTest {
 
     @Test
     void create_persistsAndNotifies() {
-        Todo created = repository.create("buy milk", "2%", null);
+        var created = repository.create("buy milk", "2%", null);
 
         assertThat(created.id()).isPositive();
         assertThat(created.title()).isEqualTo("buy milk");
@@ -52,18 +50,18 @@ class SqliteTodoRepositoryTest {
 
     @Test
     void findAll_returnsTodosInCreationOrder() {
-        Todo first = repository.create("first", null, null);
-        Todo second = repository.create("second", null, null);
-        Todo third = repository.create("third", null, null);
+        var first = repository.create("first", null, null);
+        var second = repository.create("second", null, null);
+        var third = repository.create("third", null, null);
 
         assertThat(repository.findAll()).containsExactly(first, second, third);
     }
 
     @Test
     void findByCompleted_filtersByCompletionStatus() {
-        Todo active = repository.create("active", null, null);
-        Todo completed = repository.create("completed", null, null);
-        Todo toggled = repository.toggleCompleted(completed.id()).orElseThrow();
+        var active = repository.create("active", null, null);
+        var completed = repository.create("completed", null, null);
+        var toggled = repository.toggleCompleted(completed.id()).orElseThrow();
 
         assertThat(repository.findByCompleted(false)).containsExactly(active);
         assertThat(repository.findByCompleted(true)).containsExactly(toggled);
@@ -71,11 +69,11 @@ class SqliteTodoRepositoryTest {
 
     @Test
     void update_whenExists_updatesFieldsAndNotifies() {
-        Todo created = repository.create("original", "original description", null);
-        Instant newDueDate = Instant.now();
+        var created = repository.create("original", "original description", null);
+        var newDueDate = Instant.now();
         changeMessages.clear();
 
-        Optional<Todo> updated = repository.update(created.id(), "updated", "updated description", newDueDate);
+        var updated = repository.update(created.id(), "updated", "updated description", newDueDate);
 
         assertThat(updated).isPresent();
         assertThat(updated.get().title()).isEqualTo("updated");
@@ -92,13 +90,13 @@ class SqliteTodoRepositoryTest {
 
     @Test
     void toggleCompleted_flipsStatusAndNotifies() {
-        Todo created = repository.create("title", null, null);
+        var created = repository.create("title", null, null);
         changeMessages.clear();
 
-        Todo toggledOn = repository.toggleCompleted(created.id()).orElseThrow();
+        var toggledOn = repository.toggleCompleted(created.id()).orElseThrow();
         assertThat(toggledOn.completed()).isTrue();
 
-        Todo toggledOff = repository.toggleCompleted(created.id()).orElseThrow();
+        var toggledOff = repository.toggleCompleted(created.id()).orElseThrow();
         assertThat(toggledOff.completed()).isFalse();
 
         assertThat(changeMessages).containsExactly("Completed \"title\"", "Reactivated \"title\"");
@@ -112,7 +110,7 @@ class SqliteTodoRepositoryTest {
 
     @Test
     void delete_whenExists_removesAndNotifies() {
-        Todo created = repository.create("gone soon", null, null);
+        var created = repository.create("gone soon", null, null);
         changeMessages.clear();
 
         assertThat(repository.delete(created.id())).isTrue();
@@ -128,14 +126,14 @@ class SqliteTodoRepositoryTest {
 
     @Test
     void deleteCompleted_removesOnlyCompletedAndNotifiesWithCount() {
-        Todo active = repository.create("active", null, null);
-        Todo completedOne = repository.create("completed one", null, null);
-        Todo completedTwo = repository.create("completed two", null, null);
+        var active = repository.create("active", null, null);
+        var completedOne = repository.create("completed one", null, null);
+        var completedTwo = repository.create("completed two", null, null);
         repository.toggleCompleted(completedOne.id());
         repository.toggleCompleted(completedTwo.id());
         changeMessages.clear();
 
-        int deletedCount = repository.deleteCompleted();
+        var deletedCount = repository.deleteCompleted();
 
         assertThat(deletedCount).isEqualTo(2);
         assertThat(repository.findAll()).containsExactly(active);
@@ -144,16 +142,16 @@ class SqliteTodoRepositoryTest {
 
     @Test
     void dataPersistsAcrossRepositoryInstancesBackedByTheSameFile() throws IOException {
-        Path dbFile = Files.createTempFile("todo-spark-test", ".db");
+        var dbFile = Files.createTempFile("todo-spark-test", ".db");
         Files.delete(dbFile); // SQLite creates the file itself; this just claims a unique path
-        String jdbcUrl = "jdbc:sqlite:" + dbFile;
+        var jdbcUrl = "jdbc:sqlite:" + dbFile;
 
         try {
-            try (SqliteTodoRepository first = new SqliteTodoRepository(jdbcUrl)) {
+            try (var first = new SqliteTodoRepository(jdbcUrl)) {
                 first.create("persisted todo", null, null);
             }
 
-            try (SqliteTodoRepository second = new SqliteTodoRepository(jdbcUrl)) {
+            try (var second = new SqliteTodoRepository(jdbcUrl)) {
                 assertThat(second.findAll()).extracting(Todo::title).containsExactly("persisted todo");
             }
         } finally {

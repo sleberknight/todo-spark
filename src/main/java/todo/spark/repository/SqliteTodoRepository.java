@@ -7,7 +7,6 @@ import todo.spark.model.Todo;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -30,7 +29,7 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
     public SqliteTodoRepository(String jdbcUrl) {
         try {
             connection = DriverManager.getConnection(jdbcUrl);
-            try (Statement statement = connection.createStatement()) {
+            try (var statement = connection.createStatement()) {
                 statement.execute("""
                         CREATE TABLE IF NOT EXISTS todos (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,9 +48,9 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
 
     @Override
     public synchronized Todo create(String title, String description, Instant dueDate) {
-        String sql = "INSERT INTO todos (title, description, completed, created_at, due_date) VALUES (?, ?, 0, ?, ?)";
-        Instant createdAt = Instant.now();
-        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        var sql = "INSERT INTO todos (title, description, completed, created_at, due_date) VALUES (?, ?, 0, ?, ?)";
+        var createdAt = Instant.now();
+        try (var statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, title);
             statement.setString(2, description);
             statement.setString(3, createdAt.toString());
@@ -59,7 +58,7 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
             statement.executeUpdate();
             try (ResultSet keys = statement.getGeneratedKeys()) {
                 keys.next();
-                long id = keys.getLong(1);
+                var id = keys.getLong(1);
                 notifyChange("Added \"%s\"".formatted(title));
                 return new Todo(id, title, description, false, createdAt, dueDate);
             }
@@ -70,11 +69,11 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
 
     @Override
     public synchronized Optional<Todo> findById(long id) {
-        String sql = "SELECT id, title, description, completed, created_at, due_date FROM todos WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        var sql = "SELECT id, title, description, completed, created_at, due_date FROM todos WHERE id = ?";
+        try (var statement = connection.prepareStatement(sql)) {
             statement.setLong(1, id);
-            try (ResultSet rs = statement.executeQuery()) {
-                return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
+            try (var resultSet = statement.executeQuery()) {
+                return resultSet.next() ? Optional.of(mapRow(resultSet)) : Optional.empty();
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to find todo " + id, e);
@@ -83,10 +82,10 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
 
     @Override
     public synchronized List<Todo> findAll() {
-        String sql = "SELECT id, title, description, completed, created_at, due_date FROM todos ORDER BY created_at";
-        try (Statement statement = connection.createStatement();
-             ResultSet rs = statement.executeQuery(sql)) {
-            return mapRows(rs);
+        var sql = "SELECT id, title, description, completed, created_at, due_date FROM todos ORDER BY created_at";
+        try (var statement = connection.createStatement();
+             var resultSet = statement.executeQuery(sql)) {
+            return mapRows(resultSet);
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to list todos", e);
         }
@@ -94,11 +93,11 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
 
     @Override
     public synchronized List<Todo> findByCompleted(boolean completed) {
-        String sql = "SELECT id, title, description, completed, created_at, due_date FROM todos WHERE completed = ? ORDER BY created_at";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        var sql = "SELECT id, title, description, completed, created_at, due_date FROM todos WHERE completed = ? ORDER BY created_at";
+        try (var statement = connection.prepareStatement(sql)) {
             statement.setInt(1, completed ? 1 : 0);
-            try (ResultSet rs = statement.executeQuery()) {
-                return mapRows(rs);
+            try (var resultSet = statement.executeQuery()) {
+                return mapRows(resultSet);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to list todos by completed=" + completed, e);
@@ -108,8 +107,8 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
     @Override
     public synchronized Optional<Todo> update(long id, String title, String description, Instant dueDate) {
         return findById(id).map(existing -> {
-            String sql = "UPDATE todos SET title = ?, description = ?, due_date = ? WHERE id = ?";
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            var sql = "UPDATE todos SET title = ?, description = ?, due_date = ? WHERE id = ?";
+            try (var statement = connection.prepareStatement(sql)) {
                 statement.setString(1, title);
                 statement.setString(2, description);
                 statement.setString(3, isNull(dueDate) ? null : dueDate.toString());
@@ -126,9 +125,9 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
     @Override
     public synchronized Optional<Todo> toggleCompleted(long id) {
         return findById(id).map(existing -> {
-            boolean newCompleted = !existing.completed();
-            String sql = "UPDATE todos SET completed = ? WHERE id = ?";
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            var newCompleted = !existing.completed();
+            var sql = "UPDATE todos SET completed = ? WHERE id = ?";
+            try (var statement = connection.prepareStatement(sql)) {
                 statement.setInt(1, newCompleted ? 1 : 0);
                 statement.setLong(2, id);
                 statement.executeUpdate();
@@ -143,8 +142,8 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
     @Override
     public synchronized boolean delete(long id) {
         return findById(id).map(existing -> {
-            String sql = "DELETE FROM todos WHERE id = ?";
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            var sql = "DELETE FROM todos WHERE id = ?";
+            try (var statement = connection.prepareStatement(sql)) {
                 statement.setLong(1, id);
                 statement.executeUpdate();
             } catch (SQLException e) {
@@ -157,9 +156,9 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
 
     @Override
     public synchronized int deleteCompleted() {
-        String sql = "DELETE FROM todos WHERE completed = 1";
-        try (Statement statement = connection.createStatement()) {
-            int count = statement.executeUpdate(sql);
+        var sql = "DELETE FROM todos WHERE completed = 1";
+        try (var statement = connection.createStatement()) {
+            var count = statement.executeUpdate(sql);
             if (count > 0) {
                 notifyChange("Cleared %d completed todo%s".formatted(count, count == 1 ? "" : "s"));
             }
@@ -179,7 +178,7 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
     }
 
     private static List<Todo> mapRows(ResultSet rs) throws SQLException {
-        List<Todo> todos = new ArrayList<>();
+        var todos = new ArrayList<Todo>();
         while (rs.next()) {
             todos.add(mapRow(rs));
         }
@@ -187,13 +186,13 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
     }
 
     private static Todo mapRow(ResultSet rs) throws SQLException {
-        long id = rs.getLong("id");
-        String title = rs.getString("title");
-        String description = rs.getString("description");
-        boolean completed = rs.getInt("completed") != 0;
-        Instant createdAt = Instant.parse(rs.getString("created_at"));
-        String dueDateString = rs.getString("due_date");
-        Instant dueDate = isNull(dueDateString) ? null : parse(dueDateString);
+        var id = rs.getLong("id");
+        var title = rs.getString("title");
+        var description = rs.getString("description");
+        var completed = rs.getInt("completed") != 0;
+        var createdAt = Instant.parse(rs.getString("created_at"));
+        var dueDateString = rs.getString("due_date");
+        var dueDate = isNull(dueDateString) ? null : parse(dueDateString);
         return new Todo(id, title, description, completed, createdAt, dueDate);
     }
 }

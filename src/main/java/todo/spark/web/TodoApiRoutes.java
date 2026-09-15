@@ -24,7 +24,7 @@ public class TodoApiRoutes {
     }
 
     public void register() {
-        JsonTransformer json = new JsonTransformer();
+        var json = new JsonTransformer();
 
         path("/api/todos", () -> {
             get("", this::listTodos, json);
@@ -41,7 +41,7 @@ public class TodoApiRoutes {
     }
 
     private List<Todo> listTodos(Request request, Response response) {
-        String status = request.queryParams("status");
+        var status = request.queryParams("status");
         if (isNull(status) || status.equals("all")) {
             return repository.findAll();
         }
@@ -49,26 +49,26 @@ public class TodoApiRoutes {
     }
 
     private Object createTodo(Request request, Response response) {
-        TodoRequest body = Json.GSON.fromJson(request.body(), TodoRequest.class);
+        var body = Json.GSON.fromJson(request.body(), TodoRequest.class);
         if (isNull(body) || isBlank(body.title())) {
             response.status(400);
             return new ErrorResponse("title is required");
         }
-        Todo created = repository.create(body.title(), body.description(), body.dueDate());
+        var created = repository.create(body.title(), body.description(), body.dueDate());
         response.status(201);
         return created;
     }
 
     private Object getTodo(Request request, Response response) {
-        long id = Long.parseLong(request.params(":id"));
+        var id = Long.parseLong(request.params(":id"));
         return repository.findById(id)
                 .<Object>map(todo -> todo)
                 .orElseGet(() -> notFound(response));
     }
 
     private Object updateTodo(Request request, Response response) {
-        long id = Long.parseLong(request.params(":id"));
-        TodoRequest body = Json.GSON.fromJson(request.body(), TodoRequest.class);
+        var id = Long.parseLong(request.params(":id"));
+        var body = Json.GSON.fromJson(request.body(), TodoRequest.class);
         if (isNull(body) || isBlank(body.title())) {
             response.status(400);
             return new ErrorResponse("title is required");
@@ -79,14 +79,14 @@ public class TodoApiRoutes {
     }
 
     private Object toggleTodo(Request request, Response response) {
-        long id = Long.parseLong(request.params(":id"));
+        var id = Long.parseLong(request.params(":id"));
         return repository.toggleCompleted(id)
                 .<Object>map(todo -> todo)
                 .orElseGet(() -> notFound(response));
     }
 
     private Object deleteTodo(Request request, Response response) {
-        long id = Long.parseLong(request.params(":id"));
+        var id = Long.parseLong(request.params(":id"));
         if (!repository.delete(id)) {
             return notFound(response);
         }
@@ -95,7 +95,7 @@ public class TodoApiRoutes {
     }
 
     private Object deleteCompleted(Request request, Response response) {
-        int deletedCount = repository.deleteCompleted();
+        var deletedCount = repository.deleteCompleted();
         return new DeletedCountResponse(deletedCount);
     }
 

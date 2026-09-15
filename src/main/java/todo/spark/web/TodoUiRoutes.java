@@ -9,13 +9,11 @@ import static spark.Spark.post;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
-import todo.spark.model.Todo;
 import todo.spark.repository.TodoRepository;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.List;
 import java.util.Map;
 
 public class TodoUiRoutes {
@@ -27,7 +25,7 @@ public class TodoUiRoutes {
     }
 
     public void register() {
-        FreeMarkerEngine engine = new FreeMarkerEngine();
+        var engine = new FreeMarkerEngine();
 
         get("/", this::listTodos, engine);
         get("/todos/:id/edit", this::editTodoForm, engine);
@@ -45,17 +43,22 @@ public class TodoUiRoutes {
     }
 
     private ModelAndView listTodos(Request request, Response response) {
-        String status = request.queryParams("status");
-        List<Todo> todos = switch (isNull(status) ? "all" : status) {
+        var status = request.queryParams("status");
+        var todos = switch (isNull(status) ? "all" : status) {
             case "active" -> repository.findByCompleted(false);
             case "completed" -> repository.findByCompleted(true);
             default -> repository.findAll();
         };
-        return new ModelAndView(Map.of("todos", todos, "filter", isNull(status) ? "all" : status), "list.ftl");
+
+        var model = Map.of(
+                "todos", todos,
+                "filter", isNull(status) ? "all" : status
+        );
+        return new ModelAndView(model, "list.ftl");
     }
 
     private ModelAndView editTodoForm(Request request, Response response) {
-        long id = Long.parseLong(request.params(":id"));
+        var id = Long.parseLong(request.params(":id"));
         return repository.findById(id)
                 .map(todo -> new ModelAndView(Map.of("todo", todo), "edit.ftl"))
                 .orElseGet(() -> {
@@ -65,7 +68,7 @@ public class TodoUiRoutes {
     }
 
     private Object createTodo(Request request, Response response) {
-        String title = request.queryParams("title");
+        var title = request.queryParams("title");
         if (nonNull(title) && !title.isBlank()) {
             repository.create(title, blankToNull(request.queryParams("description")), parseDueDate(request.queryParams("dueDate")));
         }
@@ -74,8 +77,8 @@ public class TodoUiRoutes {
     }
 
     private Object updateTodo(Request request, Response response) {
-        long id = Long.parseLong(request.params(":id"));
-        String title = request.queryParams("title");
+        var id = Long.parseLong(request.params(":id"));
+        var title = request.queryParams("title");
         if (nonNull(title) && !title.isBlank()) {
             repository.update(id, title, blankToNull(request.queryParams("description")), parseDueDate(request.queryParams("dueDate")));
         }
@@ -95,14 +98,14 @@ public class TodoUiRoutes {
     }
 
     private Object toggleTodo(Request request, Response response) {
-        long id = Long.parseLong(request.params(":id"));
+        var id = Long.parseLong(request.params(":id"));
         repository.toggleCompleted(id);
         response.redirect("/");
         return null;
     }
 
     private Object deleteTodo(Request request, Response response) {
-        long id = Long.parseLong(request.params(":id"));
+        var id = Long.parseLong(request.params(":id"));
         repository.delete(id);
         response.redirect("/");
         return null;

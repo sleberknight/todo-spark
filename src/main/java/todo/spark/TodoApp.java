@@ -10,7 +10,6 @@ import static spark.Spark.webSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import todo.spark.repository.SqliteTodoRepository;
-import todo.spark.repository.TodoRepository;
 import todo.spark.web.ExceptionHandlers;
 import todo.spark.web.Filters;
 import todo.spark.web.TodoApiRoutes;
@@ -28,14 +27,14 @@ public class TodoApp {
     private static final int DEFAULT_PORT = 4567;
 
     public static void main(String[] args) {
-        int appPort = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
+        var appPort = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
 
         port(appPort);
         staticFileLocation("/public");
 
-        Path databasePath = resolveDatabasePath();
+        var databasePath = resolveDatabasePath();
         LOG.info("Using SQLite database at {}", databasePath);
-        TodoRepository repository = new SqliteTodoRepository("jdbc:sqlite:" + databasePath);
+        var repository = new SqliteTodoRepository("jdbc:sqlite:" + databasePath);
         repository.setChangeListener(TodoWebSocket::broadcast);
 
         // webSocket(...) must be registered before anything that can trigger Spark's lazy
@@ -61,8 +60,8 @@ public class TodoApp {
      * never has to touch (or delete) the real data directory.
      */
     private static Path resolveDatabasePath() {
-        String override = System.getProperty("todo.spark.dbDir");
-        Path directory = nonNull(override)
+        var override = System.getProperty("todo.spark.dbDir");
+        var directory = nonNull(override)
                 ? Path.of(override)
                 : Path.of(System.getProperty("user.home"), ".todo-spark");
         try {
