@@ -19,6 +19,7 @@ public record Todo(long id, String title, String description, boolean completed,
      * bean-style property resolution needs it, whereas the components themselves are exposed
      * automatically by FreeMarker's record support.
      */
+    @SuppressWarnings("unused")  // is used in the view
     public String getFormattedDueDate() {
         return isNull(dueDate) ? "" : dueDate.atZone(UTC).toLocalDate().toString();
     }
