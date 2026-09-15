@@ -1,5 +1,7 @@
 package todo.spark.web;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static spark.Spark.get;
 import static spark.Spark.path;
 import static spark.Spark.post;
@@ -44,12 +46,12 @@ public class TodoUiRoutes {
 
     private ModelAndView listTodos(Request request, Response response) {
         String status = request.queryParams("status");
-        List<Todo> todos = switch (status == null ? "all" : status) {
+        List<Todo> todos = switch (isNull(status) ? "all" : status) {
             case "active" -> repository.findByCompleted(false);
             case "completed" -> repository.findByCompleted(true);
             default -> repository.findAll();
         };
-        return new ModelAndView(Map.of("todos", todos, "filter", status == null ? "all" : status), "list.ftl");
+        return new ModelAndView(Map.of("todos", todos, "filter", isNull(status) ? "all" : status), "list.ftl");
     }
 
     private ModelAndView editTodoForm(Request request, Response response) {
@@ -64,7 +66,7 @@ public class TodoUiRoutes {
 
     private Object createTodo(Request request, Response response) {
         String title = request.queryParams("title");
-        if (title != null && !title.isBlank()) {
+        if (nonNull(title) && !title.isBlank()) {
             repository.create(title, blankToNull(request.queryParams("description")), parseDueDate(request.queryParams("dueDate")));
         }
         response.redirect("/");
@@ -74,7 +76,7 @@ public class TodoUiRoutes {
     private Object updateTodo(Request request, Response response) {
         long id = Long.parseLong(request.params(":id"));
         String title = request.queryParams("title");
-        if (title != null && !title.isBlank()) {
+        if (nonNull(title) && !title.isBlank()) {
             repository.update(id, title, blankToNull(request.queryParams("description")), parseDueDate(request.queryParams("dueDate")));
         }
         response.redirect("/");
@@ -82,11 +84,11 @@ public class TodoUiRoutes {
     }
 
     private static String blankToNull(String s) {
-        return s == null || s.isBlank() ? null : s;
+        return isNull(s) || s.isBlank() ? null : s;
     }
 
     private static Instant parseDueDate(String yyyyMmDd) {
-        if (yyyyMmDd == null || yyyyMmDd.isBlank()) {
+        if (isNull(yyyyMmDd) || yyyyMmDd.isBlank()) {
             return null;
         }
         return LocalDate.parse(yyyyMmDd).atStartOfDay(ZoneOffset.UTC).toInstant();

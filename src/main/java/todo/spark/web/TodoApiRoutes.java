@@ -1,5 +1,6 @@
 package todo.spark.web;
 
+import static java.util.Objects.isNull;
 import static spark.Spark.delete;
 import static spark.Spark.get;
 import static spark.Spark.patch;
@@ -41,7 +42,7 @@ public class TodoApiRoutes {
 
     private List<Todo> listTodos(Request request, Response response) {
         String status = request.queryParams("status");
-        if (status == null || status.equals("all")) {
+        if (isNull(status) || status.equals("all")) {
             return repository.findAll();
         }
         return repository.findByCompleted("completed".equals(status));
@@ -49,7 +50,7 @@ public class TodoApiRoutes {
 
     private Object createTodo(Request request, Response response) {
         TodoRequest body = Json.GSON.fromJson(request.body(), TodoRequest.class);
-        if (body == null || isBlank(body.title())) {
+        if (isNull(body) || isBlank(body.title())) {
             response.status(400);
             return new ErrorResponse("title is required");
         }
@@ -68,7 +69,7 @@ public class TodoApiRoutes {
     private Object updateTodo(Request request, Response response) {
         long id = Long.parseLong(request.params(":id"));
         TodoRequest body = Json.GSON.fromJson(request.body(), TodoRequest.class);
-        if (body == null || isBlank(body.title())) {
+        if (isNull(body) || isBlank(body.title())) {
             response.status(400);
             return new ErrorResponse("title is required");
         }
@@ -104,7 +105,7 @@ public class TodoApiRoutes {
     }
 
     private static boolean isBlank(String s) {
-        return s == null || s.isBlank();
+        return isNull(s) || s.isBlank();
     }
 
     private record DeletedCountResponse(int deletedCount) {

@@ -1,5 +1,8 @@
 package todo.spark.repository;
 
+import static java.time.Instant.parse;
+import static java.util.Objects.isNull;
+
 import todo.spark.model.Todo;
 
 import java.sql.Connection;
@@ -52,7 +55,7 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
             statement.setString(1, title);
             statement.setString(2, description);
             statement.setString(3, createdAt.toString());
-            statement.setString(4, dueDate == null ? null : dueDate.toString());
+            statement.setString(4, isNull(dueDate) ? null : dueDate.toString());
             statement.executeUpdate();
             try (ResultSet keys = statement.getGeneratedKeys()) {
                 keys.next();
@@ -109,7 +112,7 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, title);
                 statement.setString(2, description);
-                statement.setString(3, dueDate == null ? null : dueDate.toString());
+                statement.setString(3, isNull(dueDate) ? null : dueDate.toString());
                 statement.setLong(4, id);
                 statement.executeUpdate();
             } catch (SQLException e) {
@@ -190,7 +193,7 @@ public class SqliteTodoRepository extends AbstractTodoRepository implements Auto
         boolean completed = rs.getInt("completed") != 0;
         Instant createdAt = Instant.parse(rs.getString("created_at"));
         String dueDateString = rs.getString("due_date");
-        Instant dueDate = dueDateString == null ? null : Instant.parse(dueDateString);
+        Instant dueDate = isNull(dueDateString) ? null : parse(dueDateString);
         return new Todo(id, title, description, completed, createdAt, dueDate);
     }
 }

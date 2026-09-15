@@ -1,5 +1,6 @@
 package todo.spark.web;
 
+import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static spark.Spark.awaitInitialization;
 import static spark.Spark.awaitStop;
@@ -21,6 +22,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -162,12 +164,12 @@ class TodoUiRoutesTest {
     }
 
     private static long createAndGetId(String title, String description, String dueDate) throws IOException, InterruptedException {
-        var form = new java.util.HashMap<String, String>();
+        var form = new HashMap<String, String>();
         form.put("title", title);
-        if (description != null) {
+        if (nonNull(description)) {
             form.put("description", description);
         }
-        if (dueDate != null) {
+        if (nonNull(dueDate)) {
             form.put("dueDate", dueDate);
         }
         postForm("/todos", form);

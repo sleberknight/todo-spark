@@ -1,5 +1,6 @@
 package todo.spark.web;
 
+import static java.util.Objects.nonNull;
 import static spark.Spark.exception;
 import static spark.Spark.internalServerError;
 import static spark.Spark.notFound;
@@ -54,6 +55,6 @@ public final class ExceptionHandlers {
     }
 
     private static boolean isApiRequest(Request request) {
-        return request.uri() != null && request.uri().startsWith("/api/");
+        return nonNull(request.uri()) && request.uri().startsWith("/api/");
     }
 }

@@ -1,5 +1,6 @@
 package todo.spark;
 
+import static java.util.Objects.nonNull;
 import static spark.Spark.awaitInitialization;
 import static spark.Spark.get;
 import static spark.Spark.port;
@@ -61,7 +62,7 @@ public class TodoApp {
      */
     private static Path resolveDatabasePath() {
         String override = System.getProperty("todo.spark.dbDir");
-        Path directory = override != null
+        Path directory = nonNull(override)
                 ? Path.of(override)
                 : Path.of(System.getProperty("user.home"), ".todo-spark");
         try {

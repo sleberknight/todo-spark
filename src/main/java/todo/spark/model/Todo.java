@@ -1,7 +1,9 @@
 package todo.spark.model;
 
+import static java.time.ZoneOffset.UTC;
+import static java.util.Objects.isNull;
+
 import java.time.Instant;
-import java.time.ZoneOffset;
 
 public record Todo(long id, String title, String description, boolean completed, Instant createdAt, Instant dueDate) {
 
@@ -18,6 +20,6 @@ public record Todo(long id, String title, String description, boolean completed,
      * automatically by FreeMarker's record support.
      */
     public String getFormattedDueDate() {
-        return dueDate == null ? "" : dueDate.atZone(ZoneOffset.UTC).toLocalDate().toString();
+        return isNull(dueDate) ? "" : dueDate.atZone(UTC).toLocalDate().toString();
     }
 }

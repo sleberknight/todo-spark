@@ -1,5 +1,7 @@
 package todo.spark.repository;
 
+import static java.util.Objects.nonNull;
+
 import todo.spark.model.Todo;
 
 import java.time.Instant;
@@ -71,7 +73,7 @@ public class InMemoryTodoRepository extends AbstractTodoRepository {
     @Override
     public boolean delete(long id) {
         Todo removed = todosById.remove(id);
-        if (removed != null) {
+        if (nonNull(removed)) {
             notifyChange("Deleted \"%s\"".formatted(removed.title()));
             return true;
         }
