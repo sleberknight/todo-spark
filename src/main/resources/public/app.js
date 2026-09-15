@@ -1,12 +1,12 @@
 (function () {
-    var toastHideTimer;
-    var reconnectDelayMs = 3000;
+    let toastHideTimer;
+    const reconnectDelayMs = 3000;
 
     connect();
 
     function connect() {
-        var protocol = location.protocol === "https:" ? "wss:" : "ws:";
-        var socket = new WebSocket(protocol + "//" + location.host + "/ws");
+        const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+        const socket = new WebSocket(protocol + "//" + location.host + "/ws");
 
         socket.onmessage = function (event) {
             showToast(event.data);
@@ -25,7 +25,7 @@
     }
 
     function showToast(message) {
-        var toast = document.getElementById("toast");
+        let toast = document.getElementById("toast");
         if (!toast) {
             toast = document.createElement("div");
             toast.id = "toast";
@@ -41,12 +41,12 @@
     }
 
     function refreshTodoList() {
-        var list = document.querySelector(".todos");
+        const list = document.querySelector(".todos");
         if (!list) {
             return;
         }
-        var status = new URLSearchParams(location.search).get("status") || "all";
-        var url = status === "all" ? "/api/todos" : "/api/todos?status=" + status;
+        const status = new URLSearchParams(location.search).get("status") || "all";
+        const url = status === "all" ? "/api/todos" : "/api/todos?status=" + status;
 
         fetch(url)
             .then(function (response) { return response.json(); })
@@ -57,7 +57,7 @@
     function renderTodoList(list, todos) {
         list.innerHTML = "";
         if (todos.length === 0) {
-            var empty = document.createElement("li");
+            const empty = document.createElement("li");
             empty.className = "empty";
             empty.textContent = "Nothing here.";
             list.appendChild(empty);
@@ -72,16 +72,16 @@
     // markup duplicated between the server-rendered template and the client, since a live
     // refresh re-renders from the JSON API instead of re-fetching the whole page
     function renderTodoItem(todo) {
-        var li = document.createElement("li");
+        const li = document.createElement("li");
         if (todo.completed) {
             li.className = "completed";
         }
 
-        var toggleForm = document.createElement("form");
+        const toggleForm = document.createElement("form");
         toggleForm.action = "/todos/" + todo.id + "/toggle";
         toggleForm.method = "post";
         toggleForm.className = "inline";
-        var toggleButton = document.createElement("button");
+        const toggleButton = document.createElement("button");
         toggleButton.type = "submit";
         toggleButton.className = "toggle";
         toggleButton.title = "toggle complete";
@@ -89,35 +89,35 @@
         toggleForm.appendChild(toggleButton);
         li.appendChild(toggleForm);
 
-        var title = document.createElement("span");
+        const title = document.createElement("span");
         title.className = "title";
         title.textContent = todo.title;
         li.appendChild(title);
 
         if (todo.description) {
-            var description = document.createElement("span");
+            const description = document.createElement("span");
             description.className = "description";
             description.textContent = todo.description;
             li.appendChild(description);
         }
 
         if (todo.dueDate) {
-            var dueDate = document.createElement("span");
+            const dueDate = document.createElement("span");
             dueDate.className = "due-date";
             dueDate.textContent = "due " + todo.dueDate.slice(0, 10);
             li.appendChild(dueDate);
         }
 
-        var editLink = document.createElement("a");
+        const editLink = document.createElement("a");
         editLink.href = "/todos/" + todo.id + "/edit";
         editLink.textContent = "edit";
         li.appendChild(editLink);
 
-        var deleteForm = document.createElement("form");
+        const deleteForm = document.createElement("form");
         deleteForm.action = "/todos/" + todo.id + "/delete";
         deleteForm.method = "post";
         deleteForm.className = "inline";
-        var deleteButton = document.createElement("button");
+        const deleteButton = document.createElement("button");
         deleteButton.type = "submit";
         deleteButton.className = "delete";
         deleteButton.textContent = "delete";
