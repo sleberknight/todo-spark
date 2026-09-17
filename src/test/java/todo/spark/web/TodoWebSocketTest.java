@@ -84,8 +84,16 @@ class TodoWebSocketTest {
      * yet, and is lost rather than delayed, so waiting longer afterward wouldn't help. Waiting
      * here for the server to actually register the session closes that race at its source,
      * rather than retrying the trigger and hoping some attempt lands after registration.
+     * <p>
+     * Waits for the count to increase from its pre-connect baseline rather than just for it
+     * to be nonzero: a prior test's connection can still be draining through its own async
+     * close handshake (sendClose()'s future resolves once the client considers the close
+     * done, before the server has necessarily run @OnWebSocketClose and removed the session)
+     * when this one starts, so a plain "count > 0" check can be satisfied by that stale,
+     * about-to-close session instead of this connection's own registration.
      */
     private static WebSocket connect(List<String> received) throws Exception {
+        var baselineCount = TodoWebSocket.connectedSessionCount();
         var listener = new WebSocket.Listener() {
             @Override
             public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
@@ -98,7 +106,7 @@ class TodoWebSocketTest {
                 .newWebSocketBuilder()
                 .buildAsync(URI.create("ws://localhost:" + TEST_PORT + "/ws"), listener)
                 .get(5, TimeUnit.SECONDS);
-        await().atMost(Duration.ofSeconds(5)).until(() -> TodoWebSocket.connectedSessionCount() > 0);
+        await().atMost(Duration.ofSeconds(5)).until(() -> TodoWebSocket.connectedSessionCount() > baselineCount);
         return socket;
     }
 }
