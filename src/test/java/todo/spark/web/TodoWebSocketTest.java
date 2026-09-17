@@ -94,6 +94,7 @@ class TodoWebSocketTest {
      */
     private static WebSocket connect(List<String> received) throws Exception {
         var baselineCount = TodoWebSocket.connectedSessionCount();
+        System.err.println("DIAG connect() start thread=" + Thread.currentThread() + " baselineCount=" + baselineCount);
         var listener = new WebSocket.Listener() {
             @Override
             public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
@@ -101,12 +102,28 @@ class TodoWebSocketTest {
                 webSocket.request(1);
                 return null;
             }
+
+            @Override
+            public void onOpen(WebSocket webSocket) {
+                System.err.println("DIAG client Listener.onOpen() thread=" + Thread.currentThread());
+                WebSocket.Listener.super.onOpen(webSocket);
+            }
+
+            @Override
+            public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+                System.err.println("DIAG client Listener.onClose() thread=" + Thread.currentThread()
+                                            + " statusCode=" + statusCode + " reason=" + reason);
+                return null;
+            }
         };
         var socket = HttpClient.newHttpClient()
                 .newWebSocketBuilder()
                 .buildAsync(URI.create("ws://localhost:" + TEST_PORT + "/ws"), listener)
                 .get(5, TimeUnit.SECONDS);
+        System.err.println("DIAG buildAsync() completed thread=" + Thread.currentThread()
+                                    + " countNow=" + TodoWebSocket.connectedSessionCount());
         await().atMost(Duration.ofSeconds(5)).until(() -> TodoWebSocket.connectedSessionCount() > baselineCount);
+        System.err.println("DIAG connect() done countNow=" + TodoWebSocket.connectedSessionCount());
         return socket;
     }
 }

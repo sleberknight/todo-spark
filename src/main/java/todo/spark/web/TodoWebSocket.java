@@ -30,11 +30,14 @@ public class TodoWebSocket {
     public void connected(Session session) {
         this.session = session;
         SESSIONS.add(session);
+        LOG.debug("DIAG connected() on {} session={} count={}", Thread.currentThread(), session, SESSIONS.size());
     }
 
     @OnWebSocketClose
     public void closed(int statusCode, String reason) {
         SESSIONS.remove(session);
+        LOG.debug("DIAG closed() on {} session={} statusCode={} reason={} count={}",
+                Thread.currentThread(), session, statusCode, reason, SESSIONS.size());
         session = null;
     }
 
