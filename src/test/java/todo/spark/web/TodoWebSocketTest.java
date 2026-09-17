@@ -85,16 +85,16 @@ class TodoWebSocketTest {
      * here for the server to actually register the session closes that race at its source,
      * rather than retrying the trigger and hoping some attempt lands after registration.
      * <p>
-     * Waits for the count to increase from its pre-connect baseline rather than just for it
-     * to be nonzero: a prior test's connection can still be draining through its own async
-     * close handshake (sendClose()'s future resolves once the client considers the close
-     * done, before the server has necessarily run @OnWebSocketClose and removed the session)
-     * when this one starts, so a plain "count > 0" check can be satisfied by that stale,
-     * about-to-close session instead of this connection's own registration.
+     * Waits on {@link TodoWebSocket#totalConnections()} - a counter that only ever goes up -
+     * rather than the live session count: a prior test's connection can still be draining
+     * through its own async close handshake (sendClose()'s future resolves once the client
+     * considers the close done, before the server has necessarily run @OnWebSocketClose and
+     * removed the session) right as this one opens, so a live-count comparison, baseline or
+     * not, can land back on the same number it started at - one session closing and another
+     * opening cancel out numerically even though a new connection genuinely registered.
      */
     private static WebSocket connect(List<String> received) throws Exception {
-        var baselineCount = TodoWebSocket.connectedSessionCount();
-        System.err.println("DIAG connect() start thread=" + Thread.currentThread() + " baselineCount=" + baselineCount);
+        var baselineTotal = TodoWebSocket.totalConnections();
         var listener = new WebSocket.Listener() {
             @Override
             public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
@@ -102,28 +102,12 @@ class TodoWebSocketTest {
                 webSocket.request(1);
                 return null;
             }
-
-            @Override
-            public void onOpen(WebSocket webSocket) {
-                System.err.println("DIAG client Listener.onOpen() thread=" + Thread.currentThread());
-                WebSocket.Listener.super.onOpen(webSocket);
-            }
-
-            @Override
-            public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-                System.err.println("DIAG client Listener.onClose() thread=" + Thread.currentThread()
-                                            + " statusCode=" + statusCode + " reason=" + reason);
-                return null;
-            }
         };
         var socket = HttpClient.newHttpClient()
                 .newWebSocketBuilder()
                 .buildAsync(URI.create("ws://localhost:" + TEST_PORT + "/ws"), listener)
                 .get(5, TimeUnit.SECONDS);
-        System.err.println("DIAG buildAsync() completed thread=" + Thread.currentThread()
-                                    + " countNow=" + TodoWebSocket.connectedSessionCount());
-        await().atMost(Duration.ofSeconds(5)).until(() -> TodoWebSocket.connectedSessionCount() > baselineCount);
-        System.err.println("DIAG connect() done countNow=" + TodoWebSocket.connectedSessionCount());
+        await().atMost(Duration.ofSeconds(5)).until(() -> TodoWebSocket.totalConnections() > baselineTotal);
         return socket;
     }
 }
