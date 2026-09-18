@@ -56,7 +56,11 @@ fi
 
 if [[ -n "$BUILD" ]]; then
   echo "Building $JAR ..."
-  mvn -q package
+  # Skip tests here - this script is for running the app, not verifying it (that's
+  # what CI's "mvn verify" is for). Running tests would also require the Playwright
+  # browser binaries (see README's Testing section), which is an extra manual step
+  # nobody should need just to start the app.
+  mvn -q package -DskipTests
 fi
 
 if [[ ! -f "$JAR" ]]; then
