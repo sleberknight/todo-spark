@@ -13,5 +13,19 @@
 		"4567": {
 			"label": "todo-spark"
 		}
+	},
+	// Baseline for this project's actual stack, independent of whatever a given
+	// account's personal Settings Sync does or doesn't carry over into a fresh
+	// container - not a substitute for it, just a guaranteed floor.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"vscjava.vscode-java-pack",
+				"redhat.vscode-xml",
+				"timonwong.shellcheck",
+				"github.vscode-github-actions",
+				"eamodio.gitlens"
+			]
+		}
 	}
 }
