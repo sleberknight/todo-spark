@@ -35,7 +35,15 @@ if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
   # change what a brand-new terminal defaults to. "sdk default" persists that choice
   # as the container-wide default, so every future terminal picks it up too, not just
   # scripts (like etc/run.sh) that explicitly call "sdk env" themselves.
-  sdk default java "$(basename "$JAVA_HOME")" > /dev/null
+  #
+  # Read the pinned version from .sdkmanrc directly rather than deriving it from
+  # $JAVA_HOME - discovered live in a Codespace that "sdk env" there sets JAVA_HOME
+  # to the generic ".../java/current" symlink path, not the concrete version
+  # directory (unlike a local macOS SDKMAN install, where it resolves to the real
+  # versioned path), so basename-ing it gave the literal string "current" instead
+  # of an actual version, and "sdk default java current" failed outright.
+  JAVA_PIN="$(sed -n 's/^java=//p' "$PROJECT_DIR/.sdkmanrc")"
+  sdk default java "$JAVA_PIN" > /dev/null
 
   if [[ ! -d "$SDKMAN_DIR/candidates/mvnd/current" ]]; then
     echo "Installing mvnd..."
