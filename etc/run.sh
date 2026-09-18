@@ -52,7 +52,10 @@ if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
   set +euo pipefail
   # shellcheck disable=SC1091
   source "$SDKMAN_DIR/bin/sdkman-init.sh"
-  sdk env > /dev/null
+  # "install" (not just "env") since a plain "sdk env" only switches to an
+  # already-installed version - it silently leaves things as they are if the
+  # .sdkmanrc-pinned version was never installed on this machine.
+  sdk env install > /dev/null
   set -euo pipefail
   # "sdk env" sets JAVA_HOME correctly but doesn't reliably reorder an
   # already-inherited PATH ahead of it, so make sure it actually wins

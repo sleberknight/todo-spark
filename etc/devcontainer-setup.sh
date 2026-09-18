@@ -29,7 +29,11 @@ if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
   set +euo pipefail
   # shellcheck disable=SC1091
   source "$SDKMAN_DIR/bin/sdkman-init.sh"
-  sdk env > /dev/null
+  # "install" (not just "env") since a plain "sdk env" only switches to an
+  # already-installed version - it silently leaves things as they are (and, as
+  # discovered live, JAVA_HOME pointing nowhere valid) if the .sdkmanrc-pinned
+  # version was never installed on this machine, which a fresh container never has.
+  sdk env install > /dev/null
 
   # "sdk env" only sets JAVA_HOME/PATH for this script's own process - it doesn't
   # change what a brand-new terminal defaults to. "sdk default" persists that choice
