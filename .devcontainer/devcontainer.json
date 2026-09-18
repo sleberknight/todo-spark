@@ -1,8 +1,11 @@
 {
 	"name": "todo-spark",
-	// The default Codespaces image already bundles SDKMAN and cached JDKs (including
-	// Java 25), which lines up with what .sdkmanrc and etc/run.sh already expect - no
-	// need to declare a separate Java feature/version here.
+	// The default Codespaces image already bundles SDKMAN, so no separate Java feature
+	// is declared here - but the JDK it caches is a Microsoft build, not the Zulu build
+	// .sdkmanrc pins. etc/run.sh's own "sdk env" call will use SDKMAN to fetch that
+	// exact pinned build on first run regardless of what's already cached; that's a
+	// deliberate one-time tradeoff rather than a second place to keep a Java version
+	// in sync with .sdkmanrc.
 	"image": "mcr.microsoft.com/devcontainers/universal:2",
 	"postCreateCommand": "etc/install-spark-core.sh",
 	"forwardPorts": [4567],
