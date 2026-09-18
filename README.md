@@ -19,18 +19,20 @@ exercising a typical set of Spark features via both a server-rendered HTML UI an
   mvn install -DskipTests
   ```
 
-  If you already have dsingley/spark cloned, just make sure it's on `ossrh` and up to
-  date. This install can go stale - if a build later fails in a way that suggests
+  If you already have dsingley/spark cloned, make sure it's on `ossrh` and up to
+  date. This installation can go stale - if a build later fails in a way that suggests
   spark-core is missing something that's clearly on `ossrh`, re-run `mvn install
   -DskipTests` there to pick up upstream changes.
+  
+### Note on ossrh branch
 
-  `ossrh` is a transitional name - the plan is to eventually rename it to `main` (and
+  `ossrh` is a transitional name – the plan is to eventually rename it to `main` (and
   rename the current `master` to something like `master-legacy`). If `git checkout ossrh`
   stops working, check the repo for whatever its default branch is called now.
 
 ## Running
 
-Easiest - one command, builds if needed:
+Easiest – one command, builds if needed:
 
 ```
 etc/run.sh --build      # first run, or after pulling changes
@@ -50,7 +52,7 @@ java -jar target/todo-spark-1.0-SNAPSHOT.jar
 `-DskipTests` avoids requiring the Playwright browser binaries (see Testing below) just
 to run the app - drop it if you want the full verification a plain `mvn package` gives you.
 
-or run `todo.spark.TodoApp#main` directly from an IDE - in which case add
+Or, run `todo.spark.TodoApp#main` directly from an IDE - in which case add
 `--enable-native-access=ALL-UNNAMED` as a VM option on that run configuration, since the
 packaged jar's manifest (which silences this automatically for `java -jar`) doesn't apply
 to a classpath-based IDE launch. Without it, `sqlite-jdbc` loading its native library
@@ -58,16 +60,16 @@ prints a JDK warning at startup - harmless today, but the JDK states this will e
 be blocked without it.
 
 The app listens on port 4567 by default (override with a single port-number argument,
-e.g. `java -jar target/todo-spark-1.0-SNAPSHOT.jar 8080`).
+e.g., `java -jar target/todo-spark-1.0-SNAPSHOT.jar 8080`).
 
 ## Data
 
-Todos are persisted to a SQLite database at `~/.todo-spark/todo.db` - fixed under the user's
+Todos are persisted to an SQLite database at `~/.todo-spark/todo.db` - fixed under the user's
 home directory rather than the process's working directory, so the same data is found no
 matter where the jar is launched from. The resolved path is logged at startup. Delete the
 file (or the whole `~/.todo-spark` directory) to reset to an empty list.
 
-To point the app at a different directory (e.g. for manual testing/verification, so a real
+To point the app at a different directory (e.g., for manual testing/verification, so a real
 data directory is never touched or deleted out from under a running instance), set the
 `todo.spark.dbDir` system property:
 
