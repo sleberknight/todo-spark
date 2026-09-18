@@ -44,6 +44,7 @@ done
 # Respect SDKMAN_DIR when it's already set rather than assuming $HOME/.sdkman - some
 # environments (e.g. GitHub Codespaces' default image) install SDKMAN system-wide at
 # /usr/local/sdkman, with SDKMAN_DIR set accordingly, not per-user.
+SDKMAN_DIR_WAS_SET="${SDKMAN_DIR:+1}"
 SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
 if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
   # SDKMAN's own init script isn't "set -u"-safe (references unset vars like
@@ -56,6 +57,12 @@ if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
   # "sdk env" sets JAVA_HOME correctly but doesn't reliably reorder an
   # already-inherited PATH ahead of it, so make sure it actually wins
   export PATH="$JAVA_HOME/bin:$PATH"
+elif [[ -n "$SDKMAN_DIR_WAS_SET" ]]; then
+  # SDKMAN_DIR was explicitly set in the environment but nothing was found there -
+  # unlike SDKMAN simply not being installed (a supported, silent fallback per the
+  # header comment above), this smells like a wrong path assumption, so say so
+  # instead of quietly building with whatever's on PATH.
+  echo "Warning: SDKMAN_DIR is set to '$SDKMAN_DIR' but no sdkman-init.sh was found there - building with whatever JDK/Maven are already on PATH, not the .sdkmanrc-pinned version." >&2
 fi
 
 if [[ -n "$BUILD" ]]; then

@@ -44,6 +44,14 @@ if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
 
   set -euo pipefail
   export PATH="$JAVA_HOME/bin:$PATH"
+else
+  # Unlike etc/run.sh, SDKMAN isn't optional here - this script's whole job is
+  # getting the container's JDK/tooling right, so silently building with whatever
+  # happens to be on PATH would report postCreateCommand success while quietly
+  # failing at that one job. Fail loudly instead of leaving that to be discovered
+  # later in some unrelated terminal.
+  echo "Error: no sdkman-init.sh found at '$SDKMAN_DIR/bin/sdkman-init.sh' - cannot pin the JDK/install mvnd." >&2
+  exit 1
 fi
 
 # HTTPS, not SSH - a fresh container has no SSH key configured for GitHub, but this
