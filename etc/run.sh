@@ -69,6 +69,18 @@ elif [[ -n "$SDKMAN_DIR_WAS_SET" ]]; then
 fi
 
 if [[ -n "$BUILD" ]]; then
+  # Fail fast with a clear pointer to the README rather than letting a missing
+  # spark-core SNAPSHOT surface as a generic, confusing Maven resolution error -
+  # this is exactly what tripped up a fresh checkout before the setup was worked
+  # out by hand. Read the pinned version from pom.xml itself rather than
+  # hardcoding it a second time, so this can't silently drift out of sync with it.
+  SPARK_CORE_VERSION="$(sed -n 's/.*<spark-core\.version>\(.*\)<\/spark-core\.version>.*/\1/p' pom.xml)"
+  SPARK_CORE_JAR="$HOME/.m2/repository/com/dsingley/sparkjava/spark-core/$SPARK_CORE_VERSION/spark-core-$SPARK_CORE_VERSION.jar"
+  if [[ ! -f "$SPARK_CORE_JAR" ]]; then
+    echo "Error: spark-core $SPARK_CORE_VERSION not found in ~/.m2 - see README's Prerequisites section for how to build and install it from dsingley/spark." >&2
+    exit 1
+  fi
+
   echo "Building $JAR ..."
   # Skip tests here - this script is for running the app, not verifying it (that's
   # what CI's "mvn verify" is for). Running tests would also require the Playwright
