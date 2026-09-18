@@ -24,6 +24,10 @@ exercising a typical set of Spark features via both a server-rendered HTML UI an
   spark-core is missing something that's clearly on `ossrh`, re-run `mvn install
   -DskipTests` there to pick up upstream changes.
 
+  `ossrh` is a transitional name - the plan is to eventually rename it to `main` (and
+  rename the current `master` to something like `master-legacy`). If `git checkout ossrh`
+  stops working, check the repo for whatever its default branch is called now.
+
 ## Running
 
 Easiest - one command, builds if needed:
