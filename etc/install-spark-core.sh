@@ -13,6 +13,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SPARK_DIR="$(dirname "$PROJECT_DIR")/spark"
 
+cd "$PROJECT_DIR"
+
 # HTTPS, not SSH - a fresh container has no SSH key configured for GitHub, but this
 # is a public repo, so an anonymous HTTPS clone works with no auth needed.
 SPARK_REPO_URL="https://github.com/dsingley/spark.git"
@@ -26,6 +28,18 @@ else
   echo "Cloning dsingley/spark (ossrh) into $SPARK_DIR..."
   # ossrh is a transitional name - see README's "Note on ossrh branch" if this fails
   git clone --branch ossrh "$SPARK_REPO_URL" "$SPARK_DIR"
+fi
+
+# Match whatever JDK etc/run.sh itself will build/run todo-spark with, rather than
+# whatever happens to be SDKMAN's default in this container - same guarded sourcing
+# run.sh uses; cwd is already PROJECT_DIR so "sdk env" picks up its .sdkmanrc.
+if [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+  set +euo pipefail
+  # shellcheck disable=SC1091
+  source "$HOME/.sdkman/bin/sdkman-init.sh"
+  sdk env > /dev/null
+  set -euo pipefail
+  export PATH="$JAVA_HOME/bin:$PATH"
 fi
 
 echo "Installing spark-core SNAPSHOT..."
