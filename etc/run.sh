@@ -41,17 +41,31 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]]; then
+# Respect SDKMAN_DIR when it's already set rather than assuming $HOME/.sdkman - some
+# environments (e.g. GitHub Codespaces' default image) install SDKMAN system-wide at
+# /usr/local/sdkman, with SDKMAN_DIR set accordingly, not per-user.
+SDKMAN_DIR_WAS_SET="${SDKMAN_DIR:+1}"
+SDKMAN_DIR="${SDKMAN_DIR:-$HOME/.sdkman}"
+if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
   # SDKMAN's own init script isn't "set -u"-safe (references unset vars like
   # ZSH_VERSION when running under bash), so relax strict mode just for this
   set +euo pipefail
   # shellcheck disable=SC1091
-  source "$HOME/.sdkman/bin/sdkman-init.sh"
-  sdk env > /dev/null
+  source "$SDKMAN_DIR/bin/sdkman-init.sh"
+  # "install" (not just "env") since a plain "sdk env" only switches to an
+  # already-installed version - it silently leaves things as they are if the
+  # .sdkmanrc-pinned version was never installed on this machine.
+  sdk env install > /dev/null
   set -euo pipefail
   # "sdk env" sets JAVA_HOME correctly but doesn't reliably reorder an
   # already-inherited PATH ahead of it, so make sure it actually wins
   export PATH="$JAVA_HOME/bin:$PATH"
+elif [[ -n "$SDKMAN_DIR_WAS_SET" ]]; then
+  # SDKMAN_DIR was explicitly set in the environment but nothing was found there -
+  # unlike SDKMAN simply not being installed (a supported, silent fallback per the
+  # header comment above), this smells like a wrong path assumption, so say so
+  # instead of quietly building with whatever's on PATH.
+  echo "Warning: SDKMAN_DIR is set to '$SDKMAN_DIR' but no sdkman-init.sh was found there - building with whatever JDK/Maven are already on PATH, not the .sdkmanrc-pinned version." >&2
 fi
 
 if [[ -n "$BUILD" ]]; then
