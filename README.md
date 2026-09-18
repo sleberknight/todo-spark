@@ -23,7 +23,7 @@ If you already have dsingley/spark cloned, make sure it's on `ossrh` and up to
 date. This installation can go stale - if a build later fails in a way that suggests
 spark-core is missing something that's clearly on `ossrh`, re-run `mvn install
 -DskipTests` there to pick up upstream changes.
-  
+
 ### Note on ossrh branch
 
 `ossrh` is a transitional name. The plan is to eventually rename it to `main` (and
