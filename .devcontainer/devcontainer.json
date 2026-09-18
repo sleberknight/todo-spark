@@ -2,12 +2,12 @@
 	"name": "todo-spark",
 	// The default Codespaces image already bundles SDKMAN, so no separate Java feature
 	// is declared here - but the JDK it caches by default is a Microsoft build, not the
-	// Zulu build .sdkmanrc pins. etc/install-spark-core.sh explicitly runs "sdk env"
+	// Zulu build .sdkmanrc pins. etc/devcontainer-setup.sh explicitly runs "sdk env"
 	// itself (same as etc/run.sh), so SDKMAN fetches and switches to that exact pinned
 	// build during postCreateCommand - one JDK, pinned in one place, used consistently
 	// for both spark-core and todo-spark itself.
 	"image": "mcr.microsoft.com/devcontainers/universal:2",
-	"postCreateCommand": "etc/install-spark-core.sh",
+	"postCreateCommand": "etc/devcontainer-setup.sh",
 	"forwardPorts": [4567],
 	"portsAttributes": {
 		"4567": {
