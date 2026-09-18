@@ -8,12 +8,21 @@ exercising a typical set of Spark features via both a server-rendered HTML UI an
 ## Prerequisites
 
 - Java 25
-- The fork's `spark-core:3.0.0-alpha.1-SNAPSHOT` installed locally:
+- The fork's `spark-core:3.0.0-alpha.1-SNAPSHOT` installed locally - it's a SNAPSHOT
+  dependency published nowhere but your own `~/.m2`, so it has to be built and installed
+  before todo-spark itself can build:
 
   ```
-  cd /path/to/dsingley/spark
+  git clone git@github.com:dsingley/spark.git
+  cd spark
+  git checkout ossrh   # the fork's default branch is master; active work happens on ossrh
   mvn install -DskipTests
   ```
+
+  If you already have dsingley/spark cloned, just make sure it's on `ossrh` and up to
+  date. This install can go stale - if a build later fails in a way that suggests
+  spark-core is missing something that's clearly on `ossrh`, re-run `mvn install
+  -DskipTests` there to pick up upstream changes.
 
 ## Running
 
@@ -30,9 +39,12 @@ If SDKMAN is installed, this picks up the JDK pinned in `.sdkmanrc` automaticall
 Or manually, as a packaged jar (builds a self-contained uber jar via maven-shade-plugin):
 
 ```
-mvn package
+mvn package -DskipTests
 java -jar target/todo-spark-1.0-SNAPSHOT.jar
 ```
+
+`-DskipTests` avoids requiring the Playwright browser binaries (see Testing below) just
+to run the app - drop it if you want the full verification a plain `mvn package` gives you.
 
 or run `todo.spark.TodoApp#main` directly from an IDE - in which case add
 `--enable-native-access=ALL-UNNAMED` as a VM option on that run configuration, since the
