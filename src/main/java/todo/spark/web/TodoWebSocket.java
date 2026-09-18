@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Broadcasts a short, human-readable description of each {@link todo.spark.repository.TodoRepository}
@@ -23,6 +24,7 @@ public class TodoWebSocket {
 
     private static final Logger LOG = LoggerFactory.getLogger(TodoWebSocket.class);
     private static final Set<Session> SESSIONS = new CopyOnWriteArraySet<>();
+    private static final AtomicLong TOTAL_CONNECTIONS = new AtomicLong();
 
     private Session session;
 
@@ -30,12 +32,23 @@ public class TodoWebSocket {
     public void connected(Session session) {
         this.session = session;
         SESSIONS.add(session);
+        TOTAL_CONNECTIONS.incrementAndGet();
     }
 
     @OnWebSocketClose
     public void closed(int statusCode, String reason) {
         SESSIONS.remove(session);
         session = null;
+    }
+
+    /**
+     * Counts every session ever opened, never decremented on close - unlike
+     * {@link #connectedSessionCount()}, a concurrent close can't cancel this out, so
+     * tests can wait for it to advance past a captured baseline to confirm specifically
+     * that a new connection registered, even if another session closes at the same time.
+     */
+    static long totalConnections() {
+        return TOTAL_CONNECTIONS.get();
     }
 
     /**
