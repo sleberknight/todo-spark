@@ -4,11 +4,13 @@ import static java.util.Objects.nonNull;
 import static spark.Spark.awaitInitialization;
 import static spark.Spark.get;
 import static spark.Spark.port;
+import static spark.Spark.routes;
 import static spark.Spark.staticFileLocation;
 import static spark.Spark.webSocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.utils.Wrapper;
 import todo.spark.repository.SqliteTodoRepository;
 import todo.spark.web.ExceptionHandlers;
 import todo.spark.web.Filters;
@@ -50,7 +52,21 @@ public class TodoApp {
         ExceptionHandlers.register();
 
         awaitInitialization();
+        logRoutes();
         LOG.info("todo-spark started on port {}", appPort);
+    }
+
+    /**
+     * Proof of concept for dsingley/spark issue: routes() + RouteMatch already
+     * expose everything needed to log registered routes at startup (Dropwizard-style),
+     * without reflecting into Service/Routes/RouteEntry internals.
+     */
+    private static void logRoutes() {
+        routes().forEach(match -> {
+            var target = (Wrapper) match.getTarget();
+            LOG.info("route: {} {} ({}) -> {}",
+                    match.getHttpMethod(), match.getMatchUri(), match.getAcceptType(), target.delegate());
+        });
     }
 
     /**
