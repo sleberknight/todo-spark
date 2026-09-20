@@ -8,8 +8,8 @@ import static spark.Spark.port;
 import static spark.Spark.stop;
 import static spark.Spark.webSocket;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import todo.spark.repository.InMemoryTodoRepository;
 import todo.spark.repository.TodoRepository;
@@ -31,10 +31,15 @@ import java.util.concurrent.TimeUnit;
 class TodoWebSocketTest {
 
     private static final int TEST_PORT = 4570;
-    private static TodoRepository repository;
+    private TodoRepository repository;
 
-    @BeforeAll
-    static void startServer() {
+    // A fresh Jetty server per test, not shared across the class: a suspected low-level
+    // race between one test's connection closing and the next test's connection opening
+    // on the same long-lived server/connector was misattributing a close event across
+    // connections (see git history for the diagnostic evidence). Giving each test its
+    // own server removes any shared connector/selector state that race could exploit.
+    @BeforeEach
+    void startServer() {
         port(TEST_PORT);
         repository = new InMemoryTodoRepository();
         repository.setChangeListener(TodoWebSocket::broadcast);
@@ -43,8 +48,8 @@ class TodoWebSocketTest {
         awaitInitialization();
     }
 
-    @AfterAll
-    static void stopServer() {
+    @AfterEach
+    void stopServer() {
         stop();
         awaitStop();
     }
