@@ -33,11 +33,13 @@ public class TodoWebSocket {
         this.session = session;
         SESSIONS.add(session);
         TOTAL_CONNECTIONS.incrementAndGet();
+        LOG.debug("DIAG connected() session={} isOpen={} thread={}", session, session.isOpen(), Thread.currentThread());
     }
 
     @OnWebSocketClose
     public void closed(int statusCode, String reason) {
         SESSIONS.remove(session);
+        LOG.debug("DIAG closed() session={} statusCode={} reason={} thread={}", session, statusCode, reason, Thread.currentThread());
         session = null;
     }
 
@@ -61,19 +63,24 @@ public class TodoWebSocket {
     }
 
     public static void broadcast(String message) {
+        LOG.debug("DIAG broadcast() start message={} sessionCount={} thread={}", message, SESSIONS.size(), Thread.currentThread());
         for (var session : SESSIONS) {
             // an unclean disconnect (e.g. the client's own location.reload()) can leave a
             // stale, already-closed session in SESSIONS before onWebSocketClose fires (or
             // without it firing at all) - skip and clean those up rather than trying to
             // send, which would just throw and leave the stale entry to fail again next time
             if (!session.isOpen()) {
+                LOG.debug("DIAG broadcast() skipping not-open session={}", session);
                 SESSIONS.remove(session);
                 continue;
             }
-            session.sendText(message, Callback.from(() -> { }, throwable -> {
-                LOG.warn("Failed to send websocket message, removing stale session", throwable);
-                SESSIONS.remove(session);
-            }));
+            LOG.debug("DIAG broadcast() sending to session={}", session);
+            session.sendText(message, Callback.from(
+                    () -> LOG.debug("DIAG broadcast() send succeeded session={}", session),
+                    throwable -> {
+                        LOG.warn("Failed to send websocket message, removing stale session", throwable);
+                        SESSIONS.remove(session);
+                    }));
         }
     }
 }
