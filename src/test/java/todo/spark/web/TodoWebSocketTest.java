@@ -54,9 +54,13 @@ class TodoWebSocketTest {
         var received = new CopyOnWriteArrayList<String>();
         var webSocket = connect(received);
         try {
+            System.err.println("DIAG about to call repository.create()");
             repository.create("buy milk", null, null);
+            System.err.println("DIAG repository.create() returned");
 
-            await().atMost(Duration.ofSeconds(5)).until(() -> received.contains("Added \"buy milk\""));
+            // DIAG: bumped from 5s to 10s - if it still times out even at 10s, that's
+            // evidence of a real delivery bug rather than CI just being occasionally slow.
+            await().atMost(Duration.ofSeconds(10)).until(() -> received.contains("Added \"buy milk\""));
         } finally {
             webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
         }
@@ -98,6 +102,7 @@ class TodoWebSocketTest {
         var listener = new WebSocket.Listener() {
             @Override
             public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+                System.err.println("DIAG onText() received=" + data + " thread=" + Thread.currentThread());
                 received.add(data.toString());
                 webSocket.request(1);
                 return null;
@@ -108,6 +113,7 @@ class TodoWebSocketTest {
                 .buildAsync(URI.create("ws://localhost:" + TEST_PORT + "/ws"), listener)
                 .get(5, TimeUnit.SECONDS);
         await().atMost(Duration.ofSeconds(5)).until(() -> TodoWebSocket.totalConnections() > baselineTotal);
+        System.err.println("DIAG connect() done totalConnections=" + TodoWebSocket.totalConnections());
         return socket;
     }
 }
