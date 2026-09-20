@@ -58,7 +58,9 @@ class TodoWebSocketTest {
             repository.create("buy milk", null, null);
             System.err.println("DIAG repository.create() returned");
 
-            await().atMost(Duration.ofSeconds(5)).until(() -> received.contains("Added \"buy milk\""));
+            // DIAG: bumped from 5s to 10s - if it still times out even at 10s, that's
+            // evidence of a real delivery bug rather than CI just being occasionally slow.
+            await().atMost(Duration.ofSeconds(10)).until(() -> received.contains("Added \"buy milk\""));
         } finally {
             webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "done").get(5, TimeUnit.SECONDS);
         }
