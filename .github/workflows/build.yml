@@ -7,9 +7,10 @@ on:
     types: [ opened, synchronize, reopened ]
     paths-ignore:
       - '**/*.md'
-  # Runs even without a todo-spark commit, since this always builds against the
-  # latest dsingley/spark (ossrh) rather than a pinned commit - catches breakage
-  # from upstream fork changes before it's noticed some other way.
+  # Push and pull request builds use the released spark-core pinned in pom.xml. The
+  # scheduled run (which happens even without a todo-spark commit) and manual runs are
+  # a canary: they build against the latest dsingley/spark (ossrh) SNAPSHOT instead,
+  # which catches breakage from fork changes before it's noticed some other way.
   schedule:
     - cron: '0 6,18 * * *'
   workflow_dispatch:
@@ -34,19 +35,24 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # todo-spark deliberately depends on this fork's in-progress spark-core SNAPSHOT
-      # rather than a published artifact, so it has to be built and installed locally
-      # before todo-spark itself can build.
-      - name: Check out dsingley/spark (spark-core dependency)
+      # Canary builds (scheduled and manual runs) use the in-progress spark-core on
+      # dsingley/spark's ossrh branch rather than the released version in pom.xml, so it
+      # has to be built and installed locally first.
+      - name: Check out dsingley/spark (canary build only)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           repository: dsingley/spark
           ref: ossrh
           path: spark-core-dependency
 
-      - name: Install spark-core SNAPSHOT
+      - name: Install spark-core SNAPSHOT (canary build only)
+        id: spark-core
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         working-directory: spark-core-dependency
-        run: mvn -B -V install -DskipTests
+        run: |
+          mvn -B -V install -DskipTests
+          echo "version=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)" >> "$GITHUB_OUTPUT"
 
       # TodoBrowserTest needs the Playwright browser binaries, which aren't a Maven
       # dependency and aren't cheap to download - cache them by the same pom.xml hash
@@ -70,4 +76,12 @@ jobs:
         # launched, so skip that check rather than chase permanently-missing libs.
         env:
           PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS: '1'
-        run: mvn -B -V verify
+          # empty unless this is a canary build, in which case it's the installed SNAPSHOT
+          SPARK_CORE_CANARY_VERSION: ${{ steps.spark-core.outputs.version }}
+        run: |
+          if [ -n "$SPARK_CORE_CANARY_VERSION" ]; then
+            echo "Canary build against spark-core $SPARK_CORE_CANARY_VERSION"
+            mvn -B -V verify "-Dspark-core.version=$SPARK_CORE_CANARY_VERSION"
+          else
+            mvn -B -V verify
+          fi

@@ -1,14 +1,10 @@
 package todo.spark.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static spark.Spark.awaitInitialization;
-import static spark.Spark.awaitStop;
-import static spark.Spark.port;
-import static spark.Spark.stop;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import spark.testing.SparkServerExtension;
 import todo.spark.model.Todo;
 import todo.spark.repository.InMemoryTodoRepository;
 
@@ -24,20 +20,13 @@ class TodoApiRoutesTest {
     private static final String BASE_URL = "http://localhost:" + TEST_PORT + "/api/todos";
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-    @BeforeAll
-    static void startServer() {
-        port(TEST_PORT);
-        new TodoApiRoutes(new InMemoryTodoRepository()).register();
-        Filters.register();
-        ExceptionHandlers.register();
-        awaitInitialization();
-    }
-
-    @AfterAll
-    static void stopServer() {
-        stop();
-        awaitStop();
-    }
+    @RegisterExtension
+    static final SparkServerExtension SPARK = new SparkServerExtension(http -> {
+        http.port(TEST_PORT);
+        new TodoApiRoutes(new InMemoryTodoRepository()).register(http);
+        Filters.register(http);
+        ExceptionHandlers.register(http);
+    });
 
     @Test
     void createTodo_withValidTitle_returns201WithCreatedTodo() throws Exception {

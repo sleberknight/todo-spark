@@ -1,16 +1,10 @@
 package todo.spark.web;
 
 import static org.awaitility.Awaitility.await;
-import static spark.Spark.awaitInitialization;
-import static spark.Spark.awaitStop;
-import static spark.Spark.init;
-import static spark.Spark.port;
-import static spark.Spark.stop;
-import static spark.Spark.webSocket;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import spark.testing.SparkServerExtension;
 import todo.spark.repository.InMemoryTodoRepository;
 import todo.spark.repository.TodoRepository;
 
@@ -38,21 +32,14 @@ class TodoWebSocketTest {
     // on the same long-lived server/connector was misattributing a close event across
     // connections (see git history for the diagnostic evidence). Giving each test its
     // own server removes any shared connector/selector state that race could exploit.
-    @BeforeEach
-    void startServer() {
-        port(TEST_PORT);
+    @RegisterExtension
+    final SparkServerExtension spark = new SparkServerExtension(http -> {
+        http.port(TEST_PORT);
         repository = new InMemoryTodoRepository();
         repository.setChangeListener(TodoWebSocket::broadcast);
-        webSocket("/ws", TodoWebSocket.class);
-        init();
-        awaitInitialization();
-    }
-
-    @AfterEach
-    void stopServer() {
-        stop();
-        awaitStop();
-    }
+        http.webSocket("/ws", TodoWebSocket.class);
+        http.init();
+    });
 
     @Test
     void broadcastsWhenATodoIsCreated() throws Exception {

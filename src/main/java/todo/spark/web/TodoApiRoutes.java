@@ -1,15 +1,10 @@
 package todo.spark.web;
 
 import static java.util.Objects.isNull;
-import static spark.Spark.delete;
-import static spark.Spark.get;
-import static spark.Spark.patch;
-import static spark.Spark.path;
-import static spark.Spark.post;
-import static spark.Spark.put;
 
 import spark.Request;
 import spark.Response;
+import spark.Service;
 import todo.spark.model.Todo;
 import todo.spark.repository.TodoRepository;
 
@@ -23,20 +18,20 @@ public class TodoApiRoutes {
         this.repository = repository;
     }
 
-    public void register() {
+    public void register(Service http) {
         var json = new JsonTransformer();
 
-        path("/api/todos", () -> {
-            get("", this::listTodos, json);
-            post("", this::createTodo, json);
+        http.path("/api/todos", () -> {
+            http.get("", this::listTodos, json);
+            http.post("", this::createTodo, json);
 
             // registered before "/:id" so it isn't shadowed by that wildcard segment
-            delete("/completed", this::deleteCompleted, json);
+            http.delete("/completed", this::deleteCompleted, json);
 
-            get("/:id", this::getTodo, json);
-            put("/:id", this::updateTodo, json);
-            patch("/:id/toggle", this::toggleTodo, json);
-            delete("/:id", this::deleteTodo, json);
+            http.get("/:id", this::getTodo, json);
+            http.put("/:id", this::updateTodo, json);
+            http.patch("/:id/toggle", this::toggleTodo, json);
+            http.delete("/:id", this::deleteTodo, json);
         });
     }
 

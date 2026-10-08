@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 #
 # devcontainer-setup.sh — postCreateCommand for .devcontainer/devcontainer.json.
-# Clones dsingley/spark (ossrh) alongside this checkout and installs its spark-core
-# SNAPSHOT, so etc/run.sh --build works with no other setup, and installs mvnd for
-# faster repeat builds inside the container.
+# Pins the container's JDK to the one in .sdkmanrc and installs mvnd for faster
+# repeat builds, so etc/run.sh --build works with no other setup (spark-core itself
+# comes from Maven Central).
 #
-# Safe to re-run: reuses/updates the existing spark clone and skips mvnd if it's
-# already installed, rather than failing on either.
+# Safe to re-run: skips mvnd if it's already installed, rather than failing.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-SPARK_DIR="$(dirname "$PROJECT_DIR")/spark"
 
 cd "$PROJECT_DIR"
 
@@ -65,21 +63,3 @@ else
   echo "Error: no sdkman-init.sh found at '$SDKMAN_DIR/bin/sdkman-init.sh' - cannot pin the JDK/install mvnd." >&2
   exit 1
 fi
-
-# HTTPS, not SSH - a fresh container has no SSH key configured for GitHub, but this
-# is a public repo, so an anonymous HTTPS clone works with no auth needed.
-SPARK_REPO_URL="https://github.com/dsingley/spark.git"
-
-if [[ -d "$SPARK_DIR/.git" ]]; then
-  echo "dsingley/spark already cloned at $SPARK_DIR - updating ossrh..."
-  git -C "$SPARK_DIR" fetch origin ossrh
-  git -C "$SPARK_DIR" checkout ossrh
-  git -C "$SPARK_DIR" pull --ff-only origin ossrh
-else
-  echo "Cloning dsingley/spark (ossrh) into $SPARK_DIR..."
-  # ossrh is a transitional name - see README's "Note on ossrh branch" if this fails
-  git clone --branch ossrh "$SPARK_REPO_URL" "$SPARK_DIR"
-fi
-
-echo "Installing spark-core SNAPSHOT..."
-mvn -f "$SPARK_DIR/pom.xml" install -DskipTests

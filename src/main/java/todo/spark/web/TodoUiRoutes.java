@@ -2,13 +2,11 @@ package todo.spark.web;
 
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static spark.Spark.get;
-import static spark.Spark.path;
-import static spark.Spark.post;
 
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
+import spark.Service;
 import todo.spark.repository.TodoRepository;
 
 import java.time.Instant;
@@ -24,21 +22,21 @@ public class TodoUiRoutes {
         this.repository = repository;
     }
 
-    public void register() {
+    public void register(Service http) {
         var engine = new FreeMarkerEngine();
 
-        get("/", this::listTodos, engine);
-        get("/todos/:id/edit", this::editTodoForm, engine);
+        http.get("/", this::listTodos, engine);
+        http.get("/todos/:id/edit", this::editTodoForm, engine);
 
-        path("/todos", () -> {
-            post("", this::createTodo);
+        http.path("/todos", () -> {
+            http.post("", this::createTodo);
 
             // registered before "/:id" routes so it isn't shadowed by that wildcard segment
-            post("/completed/delete", this::deleteCompleted);
+            http.post("/completed/delete", this::deleteCompleted);
 
-            post("/:id", this::updateTodo);
-            post("/:id/toggle", this::toggleTodo);
-            post("/:id/delete", this::deleteTodo);
+            http.post("/:id", this::updateTodo);
+            http.post("/:id/toggle", this::toggleTodo);
+            http.post("/:id/delete", this::deleteTodo);
         });
     }
 

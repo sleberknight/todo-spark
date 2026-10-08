@@ -1,15 +1,10 @@
 package todo.spark;
 
 import static java.util.Objects.nonNull;
-import static spark.Spark.awaitInitialization;
-import static spark.Spark.get;
-import static spark.Spark.port;
-import static spark.Spark.routes;
-import static spark.Spark.staticFileLocation;
-import static spark.Spark.webSocket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.Service;
 import spark.utils.Wrapper;
 import todo.spark.repository.SqliteTodoRepository;
 import todo.spark.web.ExceptionHandlers;
@@ -31,8 +26,9 @@ public class TodoApp {
     public static void main(String[] args) {
         var appPort = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
 
-        port(appPort);
-        staticFileLocation("/public");
+        var http = Service.ignite();
+        http.port(appPort);
+        http.staticFileLocation("/public");
 
         var databasePath = resolveDatabasePath();
         LOG.info("Using SQLite database at {}", databasePath);
@@ -43,16 +39,16 @@ public class TodoApp {
         // init (any addRoute call, e.g. get/post/etc.) - init() spawns a background thread
         // that reads the webSocketHandlers map to configure Jetty before starting it, and
         // that read isn't ordered against later webSocket() calls from the main thread
-        webSocket("/ws", TodoWebSocket.class);
+        http.webSocket("/ws", TodoWebSocket.class);
 
-        get("/health", (request, response) -> "OK");
-        new TodoApiRoutes(repository).register();
-        new TodoUiRoutes(repository).register();
-        Filters.register();
-        ExceptionHandlers.register();
+        http.get("/health", (request, response) -> "OK");
+        new TodoApiRoutes(repository).register(http);
+        new TodoUiRoutes(repository).register(http);
+        Filters.register(http);
+        ExceptionHandlers.register(http);
 
-        awaitInitialization();
-        logRoutes();
+        http.awaitInitialization();
+        logRoutes(http);
         LOG.info("todo-spark started on port {}", appPort);
     }
 
@@ -61,8 +57,8 @@ public class TodoApp {
      * expose everything needed to log registered routes at startup (Dropwizard-style),
      * without reflecting into Service/Routes/RouteEntry internals.
      */
-    private static void logRoutes() {
-        routes().forEach(match -> {
+    private static void logRoutes(Service http) {
+        http.routes().forEach(match -> {
             var target = (Wrapper) match.getTarget();
             LOG.info("route: {} {} ({}) -> {}",
                     match.getHttpMethod(), match.getMatchUri(), match.getAcceptType(), target.delegate());

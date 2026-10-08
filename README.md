@@ -8,27 +8,9 @@ exercising a typical set of Spark features via both a server-rendered HTML UI an
 ## Prerequisites
 
 - Java 25
-- The fork's `spark-core:3.0.0-alpha.1-SNAPSHOT` installed locally - it's a SNAPSHOT
-  dependency published nowhere but your own `~/.m2`, so it has to be built and installed
-  before todo-spark itself can build:
 
-  ```
-  git clone git@github.com:dsingley/spark.git
-  cd spark
-  git checkout ossrh   # the fork's default branch is master; active work happens on ossrh
-  mvn install -DskipTests
-  ```
-
-If you already have dsingley/spark cloned, make sure it's on `ossrh` and up to
-date. This installation can go stale - if a build later fails in a way that suggests
-spark-core is missing something that's clearly on `ossrh`, re-run `mvn install
--DskipTests` there to pick up upstream changes.
-
-### Note on ossrh branch
-
-`ossrh` is a transitional name. The plan is to eventually rename it to `main` (and
-rename the current `master` to something like `master-legacy`). If `git checkout ossrh`
-stops working, check the repo for whatever its default branch is called now.
+`spark-core` is resolved from Maven Central like any other dependency, so there is nothing
+else to install.
 
 ## Running
 

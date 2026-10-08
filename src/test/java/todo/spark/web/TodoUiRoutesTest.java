@@ -2,15 +2,10 @@ package todo.spark.web;
 
 import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
-import static spark.Spark.awaitInitialization;
-import static spark.Spark.awaitStop;
-import static spark.Spark.port;
-import static spark.Spark.staticFileLocation;
-import static spark.Spark.stop;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import spark.testing.SparkServerExtension;
 import todo.spark.model.Todo;
 import todo.spark.repository.InMemoryTodoRepository;
 import todo.spark.repository.TodoRepository;
@@ -33,22 +28,15 @@ class TodoUiRoutesTest {
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
     private static TodoRepository repository;
 
-    @BeforeAll
-    static void startServer() {
-        port(TEST_PORT);
-        staticFileLocation("/public");
+    @RegisterExtension
+    static final SparkServerExtension SPARK = new SparkServerExtension(http -> {
+        http.port(TEST_PORT);
+        http.staticFileLocation("/public");
         repository = new InMemoryTodoRepository();
-        new TodoUiRoutes(repository).register();
-        Filters.register();
-        ExceptionHandlers.register();
-        awaitInitialization();
-    }
-
-    @AfterAll
-    static void stopServer() {
-        stop();
-        awaitStop();
-    }
+        new TodoUiRoutes(repository).register(http);
+        Filters.register(http);
+        ExceptionHandlers.register(http);
+    });
 
     @Test
     void indexPage_rendersAndServesStaticCss() throws Exception {
