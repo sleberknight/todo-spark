@@ -1,14 +1,12 @@
 package todo.spark.web;
 
 import static java.util.Objects.nonNull;
-import static spark.Spark.exception;
-import static spark.Spark.internalServerError;
-import static spark.Spark.notFound;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
+import spark.Service;
 
 public final class ExceptionHandlers {
 
@@ -17,17 +15,17 @@ public final class ExceptionHandlers {
     private ExceptionHandlers() {
     }
 
-    public static void register() {
-        exception(NumberFormatException.class, (e, request, response) ->
+    public static void register(Service http) {
+        http.exception(NumberFormatException.class, (e, request, response) ->
                 respondWithError(request, response, 400, "id must be numeric"));
 
-        exception(Exception.class, (e, request, response) -> {
+        http.exception(Exception.class, (e, request, response) -> {
             LOG.error("Unhandled exception handling {} {}", request.requestMethod(), request.uri(), e);
             respondWithError(request, response, 500, "internal server error");
         });
 
-        notFound((request, response) -> errorBody(request, response, 404, "not found"));
-        internalServerError((request, response) -> errorBody(request, response, 500, "internal server error"));
+        http.notFound((request, response) -> errorBody(request, response, 404, "not found"));
+        http.internalServerError((request, response) -> errorBody(request, response, 500, "internal server error"));
     }
 
     private static void respondWithError(Request request, Response response, int status, String message) {

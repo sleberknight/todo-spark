@@ -2,12 +2,6 @@ package todo.spark.web;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static spark.Spark.awaitInitialization;
-import static spark.Spark.awaitStop;
-import static spark.Spark.port;
-import static spark.Spark.staticFileLocation;
-import static spark.Spark.stop;
-import static spark.Spark.webSocket;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserType;
@@ -15,6 +9,8 @@ import com.microsoft.playwright.Playwright;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import spark.testing.SparkServerExtension;
 import todo.spark.repository.InMemoryTodoRepository;
 
 /**
@@ -30,29 +26,29 @@ class TodoBrowserTest {
     private static Playwright playwright;
     private static Browser browser;
 
-    @BeforeAll
-    static void startServerAndBrowser() {
-        port(TEST_PORT);
-        staticFileLocation("/public");
+    @RegisterExtension
+    static final SparkServerExtension SPARK = new SparkServerExtension(http -> {
+        http.port(TEST_PORT);
+        http.staticFileLocation("/public");
         var repository = new InMemoryTodoRepository();
         repository.setChangeListener(TodoWebSocket::broadcast);
-        webSocket("/ws", TodoWebSocket.class);
-        new TodoApiRoutes(repository).register();
-        new TodoUiRoutes(repository).register();
-        Filters.register();
-        ExceptionHandlers.register();
-        awaitInitialization();
+        http.webSocket("/ws", TodoWebSocket.class);
+        new TodoApiRoutes(repository).register(http);
+        new TodoUiRoutes(repository).register(http);
+        Filters.register(http);
+        ExceptionHandlers.register(http);
+    });
 
+    @BeforeAll
+    static void startBrowser() {
         playwright = Playwright.create();
         browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
     }
 
     @AfterAll
-    static void stopServerAndBrowser() {
+    static void stopBrowser() {
         browser.close();
         playwright.close();
-        stop();
-        awaitStop();
     }
 
     @Test
