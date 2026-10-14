@@ -6,7 +6,7 @@
 
     <groupId>todo</groupId>
     <artifactId>todo-spark</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>todo-spark</name>
