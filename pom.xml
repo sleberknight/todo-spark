@@ -13,7 +13,8 @@
     <description>A sample TODO application built on Spark (dsingley/spark fork).</description>
 
     <properties>
-        <maven.compiler.release>25</maven.compiler.release>
+        <java.version>25</java.version>
+        <maven.min.version>3.9.16</maven.min.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <spark-core.version>3.0.0-alpha.3</spark-core.version>
@@ -27,6 +28,7 @@
         <playwright.version>1.63.0</playwright.version>
 
         <maven-compiler.version>3.16.0</maven-compiler.version>
+        <maven-enforcer.version>3.6.3</maven-enforcer.version>
         <maven-surefire.version>3.6.0</maven-surefire.version>
         <maven-shade.version>3.6.2</maven-shade.version>
     </properties>
@@ -97,11 +99,37 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler.version}</version>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven-enforcer.version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[${java.version},)</version>
+                                </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <version>[${maven.min.version},)</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
