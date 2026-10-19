@@ -9,7 +9,7 @@ on:
       - '**/*.md'
   # Push and pull request builds use the released spark-core pinned in pom.xml. The
   # scheduled run (which happens even without a todo-spark commit) and manual runs are
-  # a canary: they build against the latest dsingley/spark (ossrh) SNAPSHOT instead,
+  # a canary: they build against the latest dsingley/spark (main) SNAPSHOT instead,
   # which catches breakage from fork changes before it's noticed some other way.
   schedule:
     - cron: '0 6,18 * * *'
@@ -36,14 +36,14 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       # Canary builds (scheduled and manual runs) use the in-progress spark-core on
-      # dsingley/spark's ossrh branch rather than the released version in pom.xml, so it
+      # dsingley/spark's main branch rather than the released version in pom.xml, so it
       # has to be built and installed locally first.
       - name: Check out dsingley/spark (canary build only)
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           repository: dsingley/spark
-          ref: ossrh
+          ref: main
           path: spark-core-dependency
 
       - name: Install spark-core SNAPSHOT (canary build only)
