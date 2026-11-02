@@ -12,7 +12,8 @@ on:
   # a canary: they build against the latest dsingley/spark (main) SNAPSHOT instead,
   # which catches breakage from fork changes before it's noticed some other way.
   schedule:
-    - cron: '0 6,18 * * *'
+    # off the hour on purpose: runs scheduled on the hour are delayed the most when GitHub is busy
+    - cron: '23 6,18 * * *'
   workflow_dispatch:
 jobs:
   build:
@@ -35,6 +36,10 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      # todo-spark builds use the Maven wrapper (see .mvn/wrapper) so the Maven version does not
+      # depend on whatever the runner image ships; the dsingley/spark build below has no wrapper
+      # and uses the runner's Maven.
+      #
       # Canary builds (scheduled and manual runs) use the in-progress spark-core on
       # dsingley/spark's main branch rather than the released version in pom.xml, so it
       # has to be built and installed locally first.
@@ -65,8 +70,8 @@ jobs:
 
       - name: Install Playwright browsers
         run: |
-          mvn -B -V test-compile
-          mvn -q dependency:build-classpath -Dmdep.includeScope=test -Dmdep.outputFile=/tmp/cp.txt
+          ./mvnw -B -V test-compile
+          ./mvnw -q dependency:build-classpath -Dmdep.includeScope=test -Dmdep.outputFile=/tmp/cp.txt
           java -cp "$(cat /tmp/cp.txt):target/test-classes:target/classes" com.microsoft.playwright.CLI install --with-deps chromium
 
       - name: Build and test todo-spark
@@ -81,7 +86,7 @@ jobs:
         run: |
           if [ -n "$SPARK_CORE_CANARY_VERSION" ]; then
             echo "Canary build against spark-core $SPARK_CORE_CANARY_VERSION"
-            mvn -B -V verify "-Dspark-core.version=$SPARK_CORE_CANARY_VERSION"
+            ./mvnw -B -V verify "-Dspark-core.version=$SPARK_CORE_CANARY_VERSION"
           else
-            mvn -B -V verify
+            ./mvnw -B -V verify
           fi
